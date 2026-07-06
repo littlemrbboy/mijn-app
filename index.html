@@ -298,6 +298,13 @@
     border-bottom: 1px solid var(--line);
   }
   ul.todos li:last-child, ul.notes-list li:last-child { border-bottom: none; }
+  ul.todos li.dragging { opacity: 0.4; }
+  ul.todos li.drag-over { border-top: 2px solid var(--ink); }
+  .drag-handle {
+    cursor: grab; color: var(--ink-soft); font-size: 14px;
+    flex-shrink: 0; user-select: none; letter-spacing: -2px;
+  }
+  .drag-handle:active { cursor: grabbing; }
   .checkbox {
     width: 20px; height: 20px;
     border: 2px solid var(--ink-soft);
@@ -746,7 +753,12 @@
     unsubscribeTodos = onSnapshot(q, (snapshot) => {
       allTodos = [];
       snapshot.forEach(docSnap => allTodos.push({ id: docSnap.id, ...docSnap.data() }));
-      allTodos.sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
+      allTodos.sort((a, b) => {
+        if (a.order !== undefined && b.order !== undefined) return a.order - b.order;
+        if (a.order !== undefined) return -1;
+        if (b.order !== undefined) return 1;
+        return (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0);
+      });
       updateCounts();
       renderTodoList();
       renderStatRow();
@@ -785,7 +797,8 @@
       return;
     }
     listEl.innerHTML = items.map(item => `
-      <li>
+      <li draggable="true" data-id="${item.id}">
+        <span class="drag-handle" title="Sleep om te herschikken">⋮⋮</span>
         <div class="checkbox ${item.done ? 'checked' : ''}" data-id="${item.id}"></div>
         <div class="todo-text ${item.done ? 'done' : ''}">${escapeHtml(item.text)}</div>
         <button class="del-btn" data-id="${item.id}">verwijderen</button>
@@ -798,6 +811,41 @@
     listEl.querySelectorAll('.del-btn').forEach(btn => {
       btn.addEventListener('click', () => deleteTodo(btn.dataset.id));
     });
+
+    let draggedId = null;
+    listEl.querySelectorAll('li').forEach(li => {
+      li.addEventListener('dragstart', () => {
+        draggedId = li.dataset.id;
+        li.classList.add('dragging');
+      });
+      li.addEventListener('dragend', () => {
+        li.classList.remove('dragging');
+        listEl.querySelectorAll('li').forEach(x => x.classList.remove('drag-over'));
+      });
+      li.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (li.dataset.id !== draggedId) li.classList.add('drag-over');
+      });
+      li.addEventListener('dragleave', () => li.classList.remove('drag-over'));
+      li.addEventListener('drop', (e) => {
+        e.preventDefault();
+        li.classList.remove('drag-over');
+        const targetId = li.dataset.id;
+        if (!draggedId || draggedId === targetId) return;
+        reorderTodos(draggedId, targetId);
+      });
+    });
+  }
+
+  async function reorderTodos(draggedId, targetId) {
+    const items = allTodos.filter(t => t.category === currentCat);
+    const fromIdx = items.findIndex(t => t.id === draggedId);
+    const toIdx = items.findIndex(t => t.id === targetId);
+    if (fromIdx === -1 || toIdx === -1) return;
+    const reordered = items.slice();
+    const [moved] = reordered.splice(fromIdx, 1);
+    reordered.splice(toIdx, 0, moved);
+    await Promise.all(reordered.map((item, idx) => updateDoc(doc(db, 'todos', item.id), { order: idx })));
   }
 
   async function addTodo() {
