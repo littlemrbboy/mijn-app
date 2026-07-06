@@ -175,6 +175,23 @@
   .ticket-actions button:hover { color: var(--ink); }
   .ticket-actions button.danger:hover { color: var(--sport); }
 
+  .hidden-toggle {
+    font-size: 12px; color: var(--ink-soft); text-decoration: underline;
+    cursor: pointer; background: none; border: none; padding: 0; margin-top: 12px;
+  }
+  .hidden-toggle:hover { color: var(--ink); }
+  .hidden-panel { margin-top: 10px; border-top: 1px solid var(--line); padding-top: 10px; }
+  .hidden-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 0; font-size: 13px; gap: 10px;
+  }
+  .hidden-row span { color: var(--ink-soft); }
+  .hidden-row button {
+    background: none; border: none; color: var(--ink-soft);
+    text-decoration: underline; cursor: pointer; font-size: 12px; white-space: nowrap;
+  }
+  .hidden-row button:hover { color: var(--ink); }
+
   .stat-row { display: flex; gap: 12px; flex-wrap: wrap; }
   .stat-chip {
     flex: 1;
@@ -361,6 +378,7 @@
           <div class="tickets" id="tickets">
             <div class="empty-agenda">Agenda laden...</div>
           </div>
+          <div id="hidden-panel-wrap"></div>
         </div>
         <div class="welcome-card">
           <div class="stat-row" id="stat-row"></div>
@@ -520,6 +538,8 @@
   let colorPalette = null;
   let lastCalendarEvents = [];
   let hiddenTitles = new Set();
+  let hiddenDocs = [];
+  let hiddenPanelOpen = false;
   let unsubscribeHidden = null;
   let openActionsIds = new Set();
 
@@ -542,9 +562,44 @@
     const q = query(collection(db, 'hiddenEvents'), where('uid', '==', currentUser.uid));
     unsubscribeHidden = onSnapshot(q, (snapshot) => {
       hiddenTitles = new Set();
-      snapshot.forEach(docSnap => hiddenTitles.add(docSnap.data().title));
+      hiddenDocs = [];
+      snapshot.forEach(docSnap => {
+        hiddenTitles.add(docSnap.data().title);
+        hiddenDocs.push({ id: docSnap.id, title: docSnap.data().title });
+      });
       renderTickets(lastCalendarEvents);
+      renderHiddenList();
     });
+  }
+
+  function renderHiddenList() {
+    const wrap = document.getElementById('hidden-panel-wrap');
+    if (!wrap) return;
+    if (!hiddenDocs.length) {
+      wrap.innerHTML = '';
+      return;
+    }
+    wrap.innerHTML = `
+      <button class="hidden-toggle" id="hidden-toggle-btn">${hiddenPanelOpen ? 'Verborgen afspraken verbergen' : `${hiddenDocs.length} afspraaknaam(en) verborgen — bekijken`}</button>
+      <div class="hidden-panel" style="display:${hiddenPanelOpen ? 'block' : 'none'};">
+        ${hiddenDocs.map(h => `
+          <div class="hidden-row">
+            <span>${escapeHtml(h.title)}</span>
+            <button data-unhide="${h.id}">weer tonen</button>
+          </div>`).join('')}
+      </div>
+    `;
+    document.getElementById('hidden-toggle-btn').addEventListener('click', () => {
+      hiddenPanelOpen = !hiddenPanelOpen;
+      renderHiddenList();
+    });
+    wrap.querySelectorAll('[data-unhide]').forEach(btn => {
+      btn.addEventListener('click', () => unhideEvent(btn.dataset.unhide));
+    });
+  }
+
+  async function unhideEvent(id) {
+    await deleteDoc(doc(db, 'hiddenEvents', id));
   }
 
   async function loadCalendar() {
