@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Notities — Overzicht</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #121110;
+    --paper-card: #1B1917;
+    --ink: #F1EDE3;
+    --ink-soft: #9A9587;
+    --ink-contrast: #121110;
+    --line: #34312B;
+    --oldtimer: #C9A227;
+    --notes: #B98CC7;
+    --shadow: 0 1px 0 rgba(0,0,0,0.4), 0 8px 24px -12px rgba(0,0,0,0.6);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    background-image: radial-gradient(circle at 1px 1px, rgba(241,237,227,0.05) 1px, transparent 0);
+    background-size: 22px 22px;
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+  }
+  .app { max-width: 760px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  header.top {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    border-bottom: 2px solid var(--ink); padding-bottom: 18px; margin-bottom: 24px;
+    flex-wrap: wrap; gap: 14px;
+  }
+  a.back-link { font-size: 13px; color: var(--ink-soft); text-decoration: underline; }
+  a.back-link:hover { color: var(--ink); }
+  .eyebrow{
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing:.12em;
+    text-transform: uppercase; color: var(--oldtimer); margin: 8px 0 6px;
+  }
+  .brand { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 600; }
+  .brand span { font-style: italic; font-weight: 400; color: var(--ink-soft); font-size: 16px; }
+
+  .auth-area { text-align: right; font-size: 13px; color: var(--ink-soft); }
+  button.google-btn {
+    font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600;
+    background: var(--ink); color: var(--ink-contrast); border: none;
+    padding: 10px 18px; border-radius: 3px; cursor: pointer;
+  }
+  button.google-btn:hover { opacity: 0.88; }
+  .signed-in-row { display:flex; align-items:center; gap:10px; justify-content:flex-end; }
+  .signed-in-row img { width: 30px; height: 30px; border-radius: 50%; }
+  .signout { font-size: 12px; text-decoration: underline; cursor: pointer; color: var(--ink-soft); background:none; border:none; padding:0; }
+
+  .signin-gate { text-align: center; padding: 60px 20px; color: var(--ink-soft); }
+  .signin-gate p { margin-bottom: 20px; font-size: 15px; }
+
+  #notes-panel { background: var(--paper-card); box-shadow: var(--shadow); border-radius: 4px; padding: 28px 32px; }
+  #notes-panel h2 { font-family:'Fraunces', serif; font-size:24px; margin:0 0 4px 0; }
+  #notes-panel .sub { color:var(--ink-soft); font-size:13px; margin-bottom:22px; }
+
+  .add-row { display: flex; gap: 8px; margin-bottom: 22px; }
+  .add-row input {
+    flex: 1; font-family: 'Inter', sans-serif; font-size: 14px;
+    padding: 10px 12px; border: 1px solid var(--line); border-radius: 3px;
+    background: var(--paper); color: var(--ink);
+  }
+  .add-row input::placeholder { color: var(--ink-soft); }
+  .add-row input:focus { outline: 2px solid var(--ink); outline-offset: 1px; }
+  .add-row button {
+    font-weight: 600; font-size: 14px; border: none; color: var(--ink-contrast);
+    padding: 0 18px; border-radius: 3px; cursor: pointer; background: var(--notes);
+  }
+
+  ul.notes-list { list-style: none; margin: 0; padding: 0; }
+  ul.notes-list li {
+    display: flex; align-items: center; gap: 12px; padding: 12px 4px;
+    border-bottom: 1px solid var(--line);
+  }
+  ul.notes-list li:last-child { border-bottom: none; }
+  .note-text { flex: 1; font-size: 15px; }
+  .note-time { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-soft); white-space: nowrap; }
+  .del-btn {
+    background: none; border: none; color: var(--ink-soft);
+    cursor: pointer; font-size: 13px; opacity: 0.5;
+  }
+  .del-btn:hover { opacity: 1; }
+  .empty-state { color: var(--ink-soft); font-style: italic; font-size: 14px; padding: 20px 4px; }
+
+  footer.note { margin-top: 24px; font-size: 12px; color: var(--ink-soft); text-align: center; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="top">
+    <div>
+      <a class="back-link" href="index.html">← Terug naar Overzicht</a>
+      <div class="eyebrow">Notities</div>
+      <div class="brand">Snelle notities<span> — voor losse ideeën</span></div>
+    </div>
+    <div class="auth-area" id="auth-area">
+      <button class="google-btn" id="signin-btn">Inloggen met Google</button>
+    </div>
+  </header>
+
+  <div id="signed-out-view">
+    <div class="signin-gate">
+      <p>Log in met Google om je notities te zien.</p>
+    </div>
+  </div>
+
+  <div id="app-shell" style="display:none;">
+    <div id="notes-panel">
+      <h2>Snelle notities</h2>
+      <div class="sub">Voor losse ideeën die nergens anders bij passen.</div>
+      <div class="add-row">
+        <input type="text" id="new-note-input" placeholder="Snelle notitie..." />
+        <button id="add-note-btn">Toevoegen</button>
+      </div>
+      <ul class="notes-list" id="notes-list"></ul>
+    </div>
+  </div>
+
+  <footer class="note">Jouw gegevens staan veilig in jouw eigen Firebase-omgeving.</footer>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import {
+    getFirestore, collection, addDoc, onSnapshot, deleteDoc,
+    doc, query, where, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBmmkxzxJIiQQh4oAPKV9tv_dPkvHa9w_Q",
+    authDomain: "persoonlijk-cf1a6.firebaseapp.com",
+    projectId: "persoonlijk-cf1a6",
+    storageBucket: "persoonlijk-cf1a6.firebasestorage.app",
+    messagingSenderId: "229843369857",
+    appId: "1:229843369857:web:f25452fe66cbcca772f280",
+    measurementId: "G-3HZ0XC95J4"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let currentUser = null;
+  let allNotes = [];
+  let unsubscribeNotes = null;
+  let notesInitialized = false;
+
+  async function handleSignIn() {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (e) {
+      console.error(e);
+      alert('Inloggen mislukt: ' + (e.code || e.message || e));
+    }
+  }
+  document.getElementById('signin-btn').addEventListener('click', handleSignIn);
+
+  onAuthStateChanged(auth, (user) => {
+    currentUser = user;
+    renderAuthArea();
+    if (user) {
+      document.getElementById('signed-out-view').style.display = 'none';
+      document.getElementById('app-shell').style.display = 'block';
+      initNotes();
+      subscribeNotes();
+    } else {
+      document.getElementById('signed-out-view').style.display = 'block';
+      document.getElementById('app-shell').style.display = 'none';
+      if (unsubscribeNotes) unsubscribeNotes();
+    }
+  });
+
+  function renderAuthArea() {
+    const area = document.getElementById('auth-area');
+    if (currentUser) {
+      area.innerHTML = `
+        <div class="signed-in-row">
+          <img src="${currentUser.photoURL || ''}" alt="" />
+          <span>${currentUser.displayName}</span>
+          <button class="signout" id="signout-btn">Uitloggen</button>
+        </div>`;
+      document.getElementById('signout-btn').addEventListener('click', () => signOut(auth));
+    } else {
+      area.innerHTML = `<button class="google-btn" id="signin-btn">Inloggen met Google</button>`;
+      document.getElementById('signin-btn').addEventListener('click', handleSignIn);
+    }
+  }
+
+  function initNotes() {
+    if (notesInitialized) return;
+    notesInitialized = true;
+    document.getElementById('add-note-btn').addEventListener('click', addNote);
+    document.getElementById('new-note-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') addNote();
+    });
+  }
+
+  function subscribeNotes() {
+    if (unsubscribeNotes) unsubscribeNotes();
+    const q = query(collection(db, 'notes'), where('uid', '==', currentUser.uid));
+    unsubscribeNotes = onSnapshot(q, (snapshot) => {
+      allNotes = [];
+      snapshot.forEach(docSnap => allNotes.push({ id: docSnap.id, ...docSnap.data() }));
+      allNotes.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+      renderNotes();
+    });
+  }
+
+  function renderNotes() {
+    const listEl = document.getElementById('notes-list');
+    if (!listEl) return;
+    if (!allNotes.length) {
+      listEl.innerHTML = '<div class="empty-state">Nog geen notities. Zet hier snel iets neer.</div>';
+      return;
+    }
+    listEl.innerHTML = allNotes.map(n => `
+      <li>
+        <div class="note-text">${escapeHtml(n.text)}</div>
+        <span class="note-time">${formatNoteTime(n.createdAt)}</span>
+        <button class="del-btn" data-id="${n.id}">verwijderen</button>
+      </li>
+    `).join('');
+    listEl.querySelectorAll('.del-btn').forEach(btn => {
+      btn.addEventListener('click', () => deleteNote(btn.dataset.id));
+    });
+  }
+
+  function formatNoteTime(ts) {
+    if (!ts) return '';
+    const d = new Date(ts.seconds * 1000);
+    return d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' }) + ' ' +
+           d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  async function addNote() {
+    const input = document.getElementById('new-note-input');
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    await addDoc(collection(db, 'notes'), {
+      uid: currentUser.uid,
+      text,
+      createdAt: serverTimestamp()
+    });
+  }
+
+  async function deleteNote(id) {
+    await deleteDoc(doc(db, 'notes', id));
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/[&<>"']/g, m => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[m]));
+  }
+</script>
+</body>
+</html>

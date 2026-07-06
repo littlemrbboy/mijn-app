@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Mijn Dag — persoonlijke planner</title>
+<title>Overzicht — sport, werk &amp; groei</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -22,7 +22,6 @@
     --groei-soft: #232B1F;
     --oldtimer: #C9A227;
     --oldtimer-soft: #322C16;
-    --notes: #B98CC7;
     --shadow: 0 1px 0 rgba(0,0,0,0.4), 0 8px 24px -12px rgba(0,0,0,0.6);
   }
 
@@ -45,24 +44,29 @@
     padding: 40px 24px 80px;
   }
 
-  /* ---- Header ---- */
   header.top {
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
     border-bottom: 2px solid var(--ink);
     padding-bottom: 18px;
-    margin-bottom: 28px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .eyebrow{
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing:.12em;
+    text-transform: uppercase; color: var(--oldtimer); margin-bottom: 6px;
   }
   .brand {
     font-family: 'Fraunces', serif;
     font-size: 28px;
     font-weight: 600;
   }
-  .brand span { font-style: italic; font-weight: 400; color: var(--ink-soft); }
+  .brand span { font-style: italic; font-weight: 400; color: var(--ink-soft); font-size: 16px; }
 
   .auth-area { text-align: right; font-size: 13px; color: var(--ink-soft); }
-  button.google-btn {
+  button.google-btn, a.google-btn {
     font-family: 'Inter', sans-serif;
     font-size: 14px;
     font-weight: 600;
@@ -73,7 +77,7 @@
     border-radius: 3px;
     cursor: pointer;
   }
-  button.google-btn:hover { opacity: 0.88; }
+  button.google-btn:hover, a.google-btn:hover { opacity: 0.88; }
   .signed-in-row { display:flex; align-items:center; gap:10px; justify-content:flex-end; }
   .signed-in-row img { width: 30px; height: 30px; border-radius: 50%; }
   .signout { font-size: 12px; text-decoration: underline; cursor: pointer; color: var(--ink-soft); background:none; border:none; padding:0; }
@@ -85,90 +89,25 @@
   }
   .signin-gate p { margin-bottom: 20px; font-size: 15px; }
 
-  /* ---- App shell: main nav + content ---- */
-  .app-shell {
-    display: grid;
-    grid-template-columns: 210px 1fr;
-    gap: 24px;
-    align-items: start;
+  .quick-links { display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
+  .quick-links a {
+    font-size: 13px; font-weight: 600; color: var(--ink-soft); text-decoration: none;
+    border: 1px solid var(--line); padding: 9px 16px; border-radius: 3px;
+    transition: border-color .15s, color .15s;
   }
-  .main-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    background: var(--paper-card);
-    border-radius: 4px;
-    box-shadow: var(--shadow);
-    padding: 10px;
-  }
-  .nav-item {
-    padding: 12px 14px;
-    border-radius: 3px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 14px;
-    color: var(--ink-soft);
-    border-left: 3px solid transparent;
-  }
-  .nav-item:hover:not(.active) { background: rgba(241,237,227,0.05); color: var(--ink); }
-  .nav-item.active { background: rgba(241,237,227,0.07); color: var(--ink); border-left-color: var(--ink); }
-  .nav-item .nav-sub { display:block; font-weight:400; font-size:11px; color: var(--ink-soft); margin-top:2px; font-family:'IBM Plex Mono', monospace; }
+  .quick-links a:hover { color: var(--ink); border-color: var(--ink-soft); }
+  .quick-links a::after { content: " ↗"; opacity: 0.5; font-size: 11px; }
 
-  .content-section { display: none; }
-  .content-section.visible { display: block; }
-
-  /* ---- Welkom ---- */
-  .welcome-card {
-    background: var(--paper-card);
-    border-radius: 4px;
-    box-shadow: var(--shadow);
-    padding: 28px 32px;
-    margin-bottom: 20px;
-  }
-  .welcome-greeting {
-    font-family: 'Fraunces', serif;
-    font-size: 26px;
-    margin: 0 0 4px 0;
-  }
-  .today-date {
-    font-family: 'Fraunces', serif;
-    font-style: italic;
-    font-size: 17px;
-    color: var(--ink-soft);
-    margin-bottom: 18px;
-  }
-  .tickets { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
-  .ticket {
-    background: var(--paper);
-    border: 1px solid var(--line);
-    border-left: 4px solid var(--werk);
-    border-radius: 2px;
-    padding: 10px 14px;
-    min-width: 200px;
-    font-size: 13px;
-  }
-  .ticket .t-time { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--werk); font-weight: 500; }
-  .ticket .t-title { margin-top: 4px; font-weight: 600; display:flex; align-items:center; gap:6px; }
-  .t-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; display:inline-block; }
-  .empty-agenda { font-size: 13px; color: var(--ink-soft); font-style: italic; }
-  .ticket-actions { display:flex; gap:10px; margin-top:8px; flex-wrap:wrap; }
-  .ticket-actions button {
-    background:none; border:none; padding:0; cursor:pointer;
-    font-size:11px; color: var(--ink-soft); text-decoration: underline;
-  }
-  .ticket-actions button:hover { color: var(--ink); }
-  .ticket-actions button.danger:hover { color: var(--sport); }
-  .calendar-hint { font-size: 12px; color: var(--ink-soft); margin-top:10px; font-style: italic; }
-
-  .stat-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .stat-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
   .stat-chip {
     flex: 1;
     min-width: 140px;
-    background: var(--paper);
-    border: 1px solid var(--line);
+    background: var(--paper-card);
+    box-shadow: var(--shadow);
     border-radius: 4px;
     padding: 14px 16px;
     cursor: pointer;
+    border: 1px solid transparent;
   }
   .stat-chip:hover { border-color: var(--ink-soft); }
   .stat-chip .stat-label { font-size: 13px; font-weight: 600; color: var(--ink-soft); }
@@ -178,7 +117,6 @@
   .stat-chip[data-cat="groei"] .stat-num { color: var(--groei); }
   .stat-chip[data-cat="oldtimer"] .stat-num { color: var(--oldtimer); }
 
-  /* ---- To-do sub-layout ---- */
   .layout {
     display: grid;
     grid-template-columns: 190px 1fr;
@@ -257,15 +195,15 @@
     cursor: pointer;
   }
 
-  ul.todos, ul.notes-list { list-style: none; margin: 0; padding: 0; }
-  ul.todos li, ul.notes-list li {
+  ul.todos { list-style: none; margin: 0; padding: 0; }
+  ul.todos li {
     display: flex;
     align-items: center;
     gap: 12px;
     padding: 12px 4px;
     border-bottom: 1px solid var(--line);
   }
-  ul.todos li:last-child, ul.notes-list li:last-child { border-bottom: none; }
+  ul.todos li:last-child { border-bottom: none; }
   .checkbox {
     width: 20px; height: 20px;
     border: 2px solid var(--ink-soft);
@@ -276,7 +214,7 @@
   }
   .checkbox.checked { background: var(--ink); border-color: var(--ink); }
   .checkbox.checked::after { content: '✓'; color: var(--ink-contrast); font-size: 12px; }
-  .todo-text, .note-text { flex: 1; font-size: 15px; }
+  .todo-text { flex: 1; font-size: 15px; }
   .todo-text.done { text-decoration: line-through; color: var(--ink-soft); }
   .del-btn {
     background: none; border: none; color: var(--ink-soft);
@@ -289,10 +227,6 @@
   [data-cat="werk"] .add-row button { background: var(--werk); }
   [data-cat="groei"] .add-row button { background: var(--groei); }
   [data-cat="oldtimer"] .add-row button { background: var(--oldtimer); }
-  #notes-panel .add-row button { background: var(--notes); }
-
-  #notes-panel { background: var(--paper-card); box-shadow: var(--shadow); border-radius: 4px; padding: 28px 32px; }
-  .note-time { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-soft); white-space: nowrap; }
 
   footer.note {
     margin-top: 24px;
@@ -302,8 +236,6 @@
   }
 
   @media (max-width: 640px) {
-    .app-shell { grid-template-columns: 1fr; }
-    .main-nav { flex-direction: row; overflow-x: auto; }
     .layout { grid-template-columns: 1fr; }
     .tab-rail { display: flex; overflow-x: auto; padding: 10px; }
   }
@@ -313,7 +245,10 @@
 <div class="app">
 
   <header class="top">
-    <div class="brand">Mijn Dag<span> — overzicht, taken &amp; notities</span></div>
+    <div>
+      <div class="eyebrow">Overzicht</div>
+      <div class="brand">Sport, werk &amp; groei<span> — jouw taken op één plek</span></div>
+    </div>
     <div class="auth-area" id="auth-area">
       <button class="google-btn" id="signin-btn">Inloggen met Google</button>
     </div>
@@ -321,70 +256,42 @@
 
   <div id="signed-out-view">
     <div class="signin-gate">
-      <p>Log in met Google om je to-do lijst, notities en agenda te zien.</p>
-      <a href="vaarbewijs.html" class="google-btn" style="text-decoration:none; display:inline-block;">Open Vaarbewijs 1 trainer</a>
+      <p>Log in met Google om je taken te beheren.</p>
+      <a href="vaarbewijs.html" target="_blank" rel="noopener" class="google-btn" style="text-decoration:none; display:inline-block;">Open Vaarbewijs 1 trainer</a>
     </div>
   </div>
 
-  <div class="app-shell" id="app-shell" style="display:none;">
-    <nav class="main-nav" id="main-nav">
-      <div class="nav-item active" data-section="welkom">Welkom<span class="nav-sub">overzicht</span></div>
-      <div class="nav-item" data-section="todos">To-do lijsten<span class="nav-sub">sport · werk · groei · 404</span></div>
-      <div class="nav-item" data-section="notes">Snelle notities<span class="nav-sub">losse ideeën</span></div>
-      <a class="nav-item" href="vaarbewijs.html" style="text-decoration:none; display:block;">Vaarbewijs 1<span class="nav-sub">theorie trainer</span></a>
+  <div id="app-shell" style="display:none;">
+
+    <nav class="quick-links">
+      <a href="agenda.html" target="_blank" rel="noopener">Agenda</a>
+      <a href="notities.html" target="_blank" rel="noopener">Snelle notities</a>
+      <a href="vaarbewijs.html" target="_blank" rel="noopener">Vaarbewijs 1</a>
     </nav>
 
-    <div class="content-area">
+    <div class="stat-row" id="stat-row"></div>
 
-      <section class="content-section visible" id="section-welkom">
-        <div class="welcome-card">
-          <h1 class="welcome-greeting" id="welcome-greeting">Welkom terug</h1>
-          <div class="today-date" id="today-date"></div>
-          <div class="tickets" id="tickets">
-            <div class="empty-agenda">Agenda laden...</div>
-          </div>
+    <div class="layout" data-cat="sport">
+      <div class="tab-rail">
+        <div class="tab active" data-cat="sport">Sport<span class="count" data-count="sport">0 open</span></div>
+        <div class="tab" data-cat="werk">Werk<span class="count" data-count="werk">0 open</span></div>
+        <div class="tab" data-cat="groei">Persoonlijke groei<span class="count" data-count="groei">0 open</span></div>
+        <div class="tab" data-cat="oldtimer">Peugeot 404<span class="count" data-count="oldtimer">0 open</span></div>
+      </div>
+      <div class="panel">
+        <h2 id="panel-title">Sport</h2>
+        <div class="sub">Voeg iets toe en werk het rustig af.</div>
+        <div class="add-row">
+          <input type="text" id="new-todo-input" placeholder="Nieuw taakje..." />
+          <button id="add-todo-btn">Toevoegen</button>
         </div>
-        <div class="welcome-card">
-          <div class="stat-row" id="stat-row"></div>
-        </div>
-      </section>
-
-      <section class="content-section" id="section-todos">
-        <div class="layout" data-cat="sport">
-          <div class="tab-rail">
-            <div class="tab active" data-cat="sport">Sport<span class="count" data-count="sport">0 open</span></div>
-            <div class="tab" data-cat="werk">Werk<span class="count" data-count="werk">0 open</span></div>
-            <div class="tab" data-cat="groei">Persoonlijke groei<span class="count" data-count="groei">0 open</span></div>
-            <div class="tab" data-cat="oldtimer">Peugeot 404<span class="count" data-count="oldtimer">0 open</span></div>
-          </div>
-          <div class="panel">
-            <h2 id="panel-title">Sport</h2>
-            <div class="sub">Voeg iets toe en werk het rustig af.</div>
-            <div class="add-row">
-              <input type="text" id="new-todo-input" placeholder="Nieuw taakje..." />
-              <button id="add-todo-btn">Toevoegen</button>
-            </div>
-            <ul class="todos" id="todo-list"></ul>
-          </div>
-        </div>
-      </section>
-
-      <section class="content-section" id="section-notes">
-        <div id="notes-panel">
-          <h2 style="font-family:'Fraunces',serif; font-size:24px; margin:0 0 4px 0;">Snelle notities</h2>
-          <div class="sub" style="color:var(--ink-soft); font-size:13px; margin-bottom:22px;">Voor losse ideeën die nergens anders bij passen.</div>
-          <div class="add-row">
-            <input type="text" id="new-note-input" placeholder="Snelle notitie..." />
-            <button id="add-note-btn">Toevoegen</button>
-          </div>
-          <ul class="notes-list" id="notes-list"></ul>
-        </div>
-      </section>
-
+        <ul class="todos" id="todo-list"></ul>
+      </div>
     </div>
+
   </div>
 
-  <footer class="note">Jouw gegevens staan alleen in jouw eigen Firebase-project — niemand anders heeft toegang.</footer>
+  <footer class="note">Jouw gegevens staan veilig in jouw eigen Firebase-omgeving — niemand anders heeft toegang.</footer>
 </div>
 
 <script type="module">
@@ -397,9 +304,6 @@
     doc, query, where, serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  // ============================================================
-  // Firebase-config
-  // ============================================================
   const firebaseConfig = {
     apiKey: "AIzaSyBmmkxzxJIiQQh4oAPKV9tv_dPkvHa9w_Q",
     authDomain: "persoonlijk-cf1a6.firebaseapp.com",
@@ -409,7 +313,6 @@
     appId: "1:229843369857:web:f25452fe66cbcca772f280",
     measurementId: "G-3HZ0XC95J4"
   };
-  // ============================================================
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
@@ -424,27 +327,14 @@
 
   let currentUser = null;
   let currentCat = "sport";
-  let accessToken = null;
   let allTodos = [];
-  let allNotes = [];
   let unsubscribeTodos = null;
-  let unsubscribeNotes = null;
   let todosLayoutInitialized = false;
 
-  const todayDateEl = document.getElementById('today-date');
-  todayDateEl.textContent = new Date().toLocaleDateString('nl-NL', {
-    weekday: 'long', day: 'numeric', month: 'long'
-  });
-
-  // ---------- Auth ----------
   async function handleSignIn() {
     const provider = new GoogleAuthProvider();
-    provider.addScope('https://www.googleapis.com/auth/calendar.events');
     try {
-      const result = await signInWithPopup(auth, provider);
-      const credential = GoogleAuthProvider.credentialFromResult(result);
-      accessToken = credential.accessToken;
-      loadCalendar();
+      await signInWithPopup(auth, provider);
     } catch (e) {
       console.error(e);
       alert('Inloggen mislukt: ' + (e.code || e.message || e));
@@ -457,21 +347,13 @@
     renderAuthArea();
     if (user) {
       document.getElementById('signed-out-view').style.display = 'none';
-      document.getElementById('app-shell').style.display = 'grid';
-      const firstName = (user.displayName || '').split(' ')[0];
-      document.getElementById('welcome-greeting').textContent = firstName ? `Welkom terug, ${firstName}` : 'Welkom terug';
+      document.getElementById('app-shell').style.display = 'block';
       initTodosLayout();
       subscribeTodos();
-      subscribeNotes();
-      subscribeHidden();
     } else {
       document.getElementById('signed-out-view').style.display = 'block';
       document.getElementById('app-shell').style.display = 'none';
-      document.getElementById('tickets').innerHTML =
-        '<div class="empty-agenda">Log in om je agenda hier te zien.</div>';
       if (unsubscribeTodos) unsubscribeTodos();
-      if (unsubscribeNotes) unsubscribeNotes();
-      if (unsubscribeHidden) unsubscribeHidden();
     }
   });
 
@@ -491,143 +373,6 @@
     }
   }
 
-  // ---------- Main nav ----------
-  document.querySelectorAll('.nav-item').forEach(item => {
-    item.addEventListener('click', () => showSection(item.dataset.section));
-  });
-
-  function showSection(section) {
-    document.querySelectorAll('.nav-item').forEach(i => i.classList.toggle('active', i.dataset.section === section));
-    document.querySelectorAll('.content-section').forEach(s => s.classList.remove('visible'));
-    document.getElementById(`section-${section}`).classList.add('visible');
-  }
-
-  // ---------- Google Calendar ----------
-  let colorPalette = null;
-  let lastCalendarEvents = [];
-  let hiddenTitles = new Set();
-  let unsubscribeHidden = null;
-
-  async function loadColorPalette() {
-    if (colorPalette) return colorPalette;
-    try {
-      const res = await fetch('https://www.googleapis.com/calendar/v3/colors', {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      });
-      const data = await res.json();
-      colorPalette = data.event || {};
-    } catch (e) {
-      colorPalette = {};
-    }
-    return colorPalette;
-  }
-
-  function subscribeHidden() {
-    if (unsubscribeHidden) unsubscribeHidden();
-    const q = query(collection(db, 'hiddenEvents'), where('uid', '==', currentUser.uid));
-    unsubscribeHidden = onSnapshot(q, (snapshot) => {
-      hiddenTitles = new Set();
-      snapshot.forEach(docSnap => hiddenTitles.add(docSnap.data().title));
-      renderTickets(lastCalendarEvents);
-    });
-  }
-
-  async function loadCalendar() {
-    const ticketsEl = document.getElementById('tickets');
-    if (!accessToken) {
-      ticketsEl.innerHTML = `
-        <div class="empty-agenda">
-          Agenda-toegang is verlopen na het herladen van de pagina.
-          <button id="refresh-cal-btn" style="margin-left:6px; background:none; border:none; text-decoration:underline; color:var(--ink); cursor:pointer; font-style:normal; font-size:13px;">Agenda opnieuw ophalen</button>
-        </div>`;
-      const btn = document.getElementById('refresh-cal-btn');
-      if (btn) btn.addEventListener('click', handleSignIn);
-      return;
-    }
-    ticketsEl.innerHTML = '<div class="empty-agenda">Agenda laden...</div>';
-    await loadColorPalette();
-    const now = new Date();
-    const in7days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-    const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${now.toISOString()}&timeMax=${in7days.toISOString()}&singleEvents=true&orderBy=startTime&maxResults=20`;
-    try {
-      const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
-      if (!res.ok) throw new Error('calendar fetch failed');
-      const data = await res.json();
-      lastCalendarEvents = data.items || [];
-      renderTickets(lastCalendarEvents);
-    } catch (e) {
-      console.error(e);
-      ticketsEl.innerHTML = '<div class="empty-agenda">Kon agenda niet laden. Log opnieuw in.</div>';
-    }
-  }
-
-  function renderTickets(events) {
-    const ticketsEl = document.getElementById('tickets');
-    const visible = events.filter(ev => !hiddenTitles.has(ev.summary || 'Zonder titel'));
-    if (!visible.length) {
-      ticketsEl.innerHTML = '<div class="empty-agenda">Geen (zichtbare) afspraken de komende 7 dagen. Fijn rustig.</div>';
-      return;
-    }
-    ticketsEl.innerHTML = visible.map(ev => {
-      const start = ev.start.dateTime || ev.start.date;
-      const d = new Date(start);
-      const timeStr = ev.start.dateTime
-        ? d.toLocaleString('nl-NL', { weekday: 'short', hour: '2-digit', minute: '2-digit' })
-        : d.toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short' });
-      const title = (ev.summary || 'Zonder titel').replace(/</g, '&lt;');
-      const colorInfo = ev.colorId && colorPalette[ev.colorId] ? colorPalette[ev.colorId] : null;
-      const dotColor = colorInfo ? colorInfo.background : 'var(--werk)';
-      const isRecurring = !!ev.recurringEventId;
-      return `
-        <div class="ticket" style="border-left-color:${dotColor}">
-          <div class="t-time">${timeStr}</div>
-          <div class="t-title"><span class="t-dot" style="background:${dotColor}"></span>${title}</div>
-          <div class="ticket-actions">
-            <button data-action="hide" data-title="${encodeURIComponent(ev.summary || 'Zonder titel')}">verbergen voortaan</button>
-            <button class="danger" data-action="delete" data-id="${ev.id}">verwijderen</button>
-            ${isRecurring ? `<button class="danger" data-action="delete-series" data-recurring-id="${ev.recurringEventId}">hele reeks verwijderen</button>` : ''}
-          </div>
-        </div>`;
-    }).join('');
-
-    ticketsEl.querySelectorAll('[data-action="hide"]').forEach(btn => {
-      btn.addEventListener('click', () => hideEventTitle(decodeURIComponent(btn.dataset.title)));
-    });
-    ticketsEl.querySelectorAll('[data-action="delete"]').forEach(btn => {
-      btn.addEventListener('click', () => deleteCalendarEvent(btn.dataset.id, false));
-    });
-    ticketsEl.querySelectorAll('[data-action="delete-series"]').forEach(btn => {
-      btn.addEventListener('click', () => deleteCalendarEvent(btn.dataset.recurringId, true));
-    });
-  }
-
-  async function hideEventTitle(title) {
-    await addDoc(collection(db, 'hiddenEvents'), {
-      uid: currentUser.uid,
-      title,
-      createdAt: serverTimestamp()
-    });
-  }
-
-  async function deleteCalendarEvent(eventId, isSeries) {
-    const msg = isSeries
-      ? 'Weet je zeker dat je de HELE reeks van deze terugkerende afspraak wilt verwijderen uit je Google Agenda? Dit kan niet ongedaan gemaakt worden.'
-      : 'Weet je zeker dat je deze afspraak wilt verwijderen uit je Google Agenda? Dit kan niet ongedaan gemaakt worden.';
-    if (!confirm(msg)) return;
-    try {
-      const res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${accessToken}` }
-      });
-      if (!res.ok && res.status !== 410) throw new Error('delete failed: ' + res.status);
-      await loadCalendar();
-    } catch (e) {
-      console.error(e);
-      alert('Verwijderen is mislukt. Mogelijk moet je opnieuw inloggen (uitloggen + inloggen) om schrijfrechten te geven.');
-    }
-  }
-
-  // ---------- To-do's ----------
   function initTodosLayout() {
     if (todosLayoutInitialized) return;
     todosLayoutInitialized = true;
@@ -647,13 +392,6 @@
     document.getElementById('new-todo-input').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') addTodo();
     });
-
-    document.getElementById('add-note-btn').addEventListener('click', addNote);
-    document.getElementById('new-note-input').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') addNote();
-    });
-
-    loadCalendar();
   }
 
   function subscribeTodos() {
@@ -685,7 +423,6 @@
     }).join('');
     row.querySelectorAll('.stat-chip').forEach(chip => {
       chip.addEventListener('click', () => {
-        showSection('todos');
         const tab = document.querySelector(`.tab[data-cat="${chip.dataset.cat}"]`);
         if (tab) tab.click();
       });
@@ -738,60 +475,6 @@
 
   async function deleteTodo(id) {
     await deleteDoc(doc(db, 'todos', id));
-  }
-
-  // ---------- Snelle notities ----------
-  function subscribeNotes() {
-    if (unsubscribeNotes) unsubscribeNotes();
-    const q = query(collection(db, 'notes'), where('uid', '==', currentUser.uid));
-    unsubscribeNotes = onSnapshot(q, (snapshot) => {
-      allNotes = [];
-      snapshot.forEach(docSnap => allNotes.push({ id: docSnap.id, ...docSnap.data() }));
-      allNotes.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-      renderNotes();
-    });
-  }
-
-  function renderNotes() {
-    const listEl = document.getElementById('notes-list');
-    if (!listEl) return;
-    if (!allNotes.length) {
-      listEl.innerHTML = '<div class="empty-state">Nog geen notities. Zet hier snel iets neer.</div>';
-      return;
-    }
-    listEl.innerHTML = allNotes.map(n => `
-      <li>
-        <div class="note-text">${escapeHtml(n.text)}</div>
-        <span class="note-time">${formatNoteTime(n.createdAt)}</span>
-        <button class="del-btn" data-id="${n.id}">verwijderen</button>
-      </li>
-    `).join('');
-    listEl.querySelectorAll('.del-btn').forEach(btn => {
-      btn.addEventListener('click', () => deleteNote(btn.dataset.id));
-    });
-  }
-
-  function formatNoteTime(ts) {
-    if (!ts) return '';
-    const d = new Date(ts.seconds * 1000);
-    return d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' }) + ' ' +
-           d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
-  }
-
-  async function addNote() {
-    const input = document.getElementById('new-note-input');
-    const text = input.value.trim();
-    if (!text) return;
-    input.value = '';
-    await addDoc(collection(db, 'notes'), {
-      uid: currentUser.uid,
-      text,
-      createdAt: serverTimestamp()
-    });
-  }
-
-  async function deleteNote(id) {
-    await deleteDoc(doc(db, 'notes', id));
   }
 
   function escapeHtml(str) {

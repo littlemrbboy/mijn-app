@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Agenda — Overzicht</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #121110;
+    --paper-card: #1B1917;
+    --ink: #F1EDE3;
+    --ink-soft: #9A9587;
+    --ink-contrast: #121110;
+    --line: #34312B;
+    --werk: #7C93C4;
+    --oldtimer: #C9A227;
+    --sport: #E2664B;
+    --shadow: 0 1px 0 rgba(0,0,0,0.4), 0 8px 24px -12px rgba(0,0,0,0.6);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    background-image: radial-gradient(circle at 1px 1px, rgba(241,237,227,0.05) 1px, transparent 0);
+    background-size: 22px 22px;
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+  }
+  .app { max-width: 900px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  header.top {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    border-bottom: 2px solid var(--ink); padding-bottom: 18px; margin-bottom: 24px;
+    flex-wrap: wrap; gap: 14px;
+  }
+  a.back-link { font-size: 13px; color: var(--ink-soft); text-decoration: underline; }
+  a.back-link:hover { color: var(--ink); }
+  .eyebrow{
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing:.12em;
+    text-transform: uppercase; color: var(--oldtimer); margin: 8px 0 6px;
+  }
+  .brand { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 600; }
+  .brand span { font-style: italic; font-weight: 400; color: var(--ink-soft); font-size: 16px; }
+
+  .auth-area { text-align: right; font-size: 13px; color: var(--ink-soft); }
+  button.google-btn {
+    font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600;
+    background: var(--ink); color: var(--ink-contrast); border: none;
+    padding: 10px 18px; border-radius: 3px; cursor: pointer;
+  }
+  button.google-btn:hover { opacity: 0.88; }
+  .signed-in-row { display:flex; align-items:center; gap:10px; justify-content:flex-end; }
+  .signed-in-row img { width: 30px; height: 30px; border-radius: 50%; }
+  .signout { font-size: 12px; text-decoration: underline; cursor: pointer; color: var(--ink-soft); background:none; border:none; padding:0; }
+
+  .signin-gate { text-align: center; padding: 60px 20px; color: var(--ink-soft); }
+  .signin-gate p { margin-bottom: 20px; font-size: 15px; }
+
+  .welcome-card {
+    background: var(--paper-card); border-radius: 4px; box-shadow: var(--shadow);
+    padding: 28px 32px;
+  }
+  .welcome-greeting { font-family: 'Fraunces', serif; font-size: 26px; margin: 0 0 4px 0; }
+  .today-date { font-family: 'Fraunces', serif; font-style: italic; font-size: 17px; color: var(--ink-soft); margin-bottom: 18px; }
+
+  .tickets { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
+  .ticket {
+    background: var(--paper); border: 1px solid var(--line); border-left: 4px solid var(--werk);
+    border-radius: 2px; padding: 10px 14px; min-width: 220px; font-size: 13px;
+  }
+  .ticket .t-time { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--werk); font-weight: 500; }
+  .ticket .t-title { margin-top: 4px; font-weight: 600; display:flex; align-items:center; gap:6px; }
+  .ticket .t-title .t-label { flex: 1; }
+  .t-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; display:inline-block; }
+  .edit-icon {
+    background: none; border: none; color: var(--ink-soft); cursor: pointer;
+    font-size: 13px; opacity: 0.5; padding: 2px 4px; flex-shrink: 0;
+  }
+  .edit-icon:hover, .edit-icon.active { opacity: 1; color: var(--ink); }
+  .empty-agenda { font-size: 13px; color: var(--ink-soft); font-style: italic; }
+  .ticket-actions { display:none; gap:10px; margin-top:8px; flex-wrap:wrap; }
+  .ticket-actions.open { display:flex; }
+  .ticket-actions button {
+    background:none; border:none; padding:0; cursor:pointer;
+    font-size:11px; color: var(--ink-soft); text-decoration: underline;
+  }
+  .ticket-actions button:hover { color: var(--ink); }
+  .ticket-actions button.danger:hover { color: var(--sport); }
+
+  footer.note { margin-top: 24px; font-size: 12px; color: var(--ink-soft); text-align: center; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="top">
+    <div>
+      <a class="back-link" href="index.html">← Terug naar Overzicht</a>
+      <div class="eyebrow">Agenda</div>
+      <div class="brand">Deze week<span> — wat er aan zit te komen</span></div>
+    </div>
+    <div class="auth-area" id="auth-area">
+      <button class="google-btn" id="signin-btn">Inloggen met Google</button>
+    </div>
+  </header>
+
+  <div id="signed-out-view">
+    <div class="signin-gate">
+      <p>Log in met Google om je agenda te zien.</p>
+    </div>
+  </div>
+
+  <div id="app-shell" style="display:none;">
+    <div class="welcome-card">
+      <h1 class="welcome-greeting" id="welcome-greeting">Hallo</h1>
+      <div class="today-date" id="today-date"></div>
+      <div class="tickets" id="tickets">
+        <div class="empty-agenda">Agenda laden...</div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="note">Jouw agenda komt rechtstreeks uit Google Calendar — er wordt niets extra opgeslagen.</footer>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import {
+    getFirestore, collection, addDoc, onSnapshot, query, where, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBmmkxzxJIiQQh4oAPKV9tv_dPkvHa9w_Q",
+    authDomain: "persoonlijk-cf1a6.firebaseapp.com",
+    projectId: "persoonlijk-cf1a6",
+    storageBucket: "persoonlijk-cf1a6.firebasestorage.app",
+    messagingSenderId: "229843369857",
+    appId: "1:229843369857:web:f25452fe66cbcca772f280",
+    measurementId: "G-3HZ0XC95J4"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let currentUser = null;
+  let accessToken = null;
+  let colorPalette = null;
+  let lastCalendarEvents = [];
+  let hiddenTitles = new Set();
+  let unsubscribeHidden = null;
+  let openActionsIds = new Set();
+
+  const todayDateEl = document.getElementById('today-date');
+  todayDateEl.textContent = new Date().toLocaleDateString('nl-NL', {
+    weekday: 'long', day: 'numeric', month: 'long'
+  });
+
+  async function handleSignIn() {
+    const provider = new GoogleAuthProvider();
+    provider.addScope('https://www.googleapis.com/auth/calendar.events');
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      accessToken = credential.accessToken;
+      loadCalendar();
+    } catch (e) {
+      console.error(e);
+      alert('Inloggen mislukt: ' + (e.code || e.message || e));
+    }
+  }
+  document.getElementById('signin-btn').addEventListener('click', handleSignIn);
+
+  onAuthStateChanged(auth, (user) => {
+    currentUser = user;
+    renderAuthArea();
+    if (user) {
+      document.getElementById('signed-out-view').style.display = 'none';
+      document.getElementById('app-shell').style.display = 'block';
+      const firstName = (user.displayName || '').split(' ')[0];
+      document.getElementById('welcome-greeting').textContent = firstName ? `Hallo, ${firstName}` : 'Hallo';
+      subscribeHidden();
+      loadCalendar();
+    } else {
+      document.getElementById('signed-out-view').style.display = 'block';
+      document.getElementById('app-shell').style.display = 'none';
+      if (unsubscribeHidden) unsubscribeHidden();
+    }
+  });
+
+  function renderAuthArea() {
+    const area = document.getElementById('auth-area');
+    if (currentUser) {
+      area.innerHTML = `
+        <div class="signed-in-row">
+          <img src="${currentUser.photoURL || ''}" alt="" />
+          <span>${currentUser.displayName}</span>
+          <button class="signout" id="signout-btn">Uitloggen</button>
+        </div>`;
+      document.getElementById('signout-btn').addEventListener('click', () => signOut(auth));
+    } else {
+      area.innerHTML = `<button class="google-btn" id="signin-btn">Inloggen met Google</button>`;
+      document.getElementById('signin-btn').addEventListener('click', handleSignIn);
+    }
+  }
+
+  async function loadColorPalette() {
+    if (colorPalette) return colorPalette;
+    try {
+      const res = await fetch('https://www.googleapis.com/calendar/v3/colors', {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+      const data = await res.json();
+      colorPalette = data.event || {};
+    } catch (e) {
+      colorPalette = {};
+    }
+    return colorPalette;
+  }
+
+  function subscribeHidden() {
+    if (unsubscribeHidden) unsubscribeHidden();
+    const q = query(collection(db, 'hiddenEvents'), where('uid', '==', currentUser.uid));
+    unsubscribeHidden = onSnapshot(q, (snapshot) => {
+      hiddenTitles = new Set();
+      snapshot.forEach(docSnap => hiddenTitles.add(docSnap.data().title));
+      renderTickets(lastCalendarEvents);
+    });
+  }
+
+  async function loadCalendar() {
+    const ticketsEl = document.getElementById('tickets');
+    if (!accessToken) {
+      ticketsEl.innerHTML = `
+        <div class="empty-agenda">
+          Agenda-toegang is verlopen na het herladen van de pagina.
+          <button id="refresh-cal-btn" style="margin-left:6px; background:none; border:none; text-decoration:underline; color:var(--ink); cursor:pointer; font-style:normal; font-size:13px;">Agenda opnieuw ophalen</button>
+        </div>`;
+      const btn = document.getElementById('refresh-cal-btn');
+      if (btn) btn.addEventListener('click', handleSignIn);
+      return;
+    }
+    ticketsEl.innerHTML = '<div class="empty-agenda">Agenda laden...</div>';
+    await loadColorPalette();
+    const now = new Date();
+    const in7days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${now.toISOString()}&timeMax=${in7days.toISOString()}&singleEvents=true&orderBy=startTime&maxResults=20`;
+    try {
+      const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
+      if (!res.ok) throw new Error('calendar fetch failed');
+      const data = await res.json();
+      lastCalendarEvents = data.items || [];
+      renderTickets(lastCalendarEvents);
+    } catch (e) {
+      console.error(e);
+      ticketsEl.innerHTML = '<div class="empty-agenda">Kon agenda niet laden. Log opnieuw in.</div>';
+    }
+  }
+
+  function renderTickets(events) {
+    const ticketsEl = document.getElementById('tickets');
+    const visible = events.filter(ev => !hiddenTitles.has(ev.summary || 'Zonder titel'));
+    if (!visible.length) {
+      ticketsEl.innerHTML = '<div class="empty-agenda">Geen (zichtbare) afspraken de komende 7 dagen. Fijn rustig.</div>';
+      return;
+    }
+    ticketsEl.innerHTML = visible.map(ev => {
+      const start = ev.start.dateTime || ev.start.date;
+      const d = new Date(start);
+      const timeStr = ev.start.dateTime
+        ? d.toLocaleString('nl-NL', { weekday: 'short', hour: '2-digit', minute: '2-digit' })
+        : d.toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short' });
+      const title = (ev.summary || 'Zonder titel').replace(/</g, '&lt;');
+      const colorInfo = ev.colorId && colorPalette[ev.colorId] ? colorPalette[ev.colorId] : null;
+      const dotColor = colorInfo ? colorInfo.background : 'var(--werk)';
+      const isRecurring = !!ev.recurringEventId;
+      const isOpen = openActionsIds.has(ev.id);
+      return `
+        <div class="ticket" style="border-left-color:${dotColor}">
+          <div class="t-time">${timeStr}</div>
+          <div class="t-title">
+            <span class="t-dot" style="background:${dotColor}"></span>
+            <span class="t-label">${title}</span>
+            <button class="edit-icon ${isOpen ? 'active' : ''}" data-action="toggle-edit" data-id="${ev.id}" title="Bewerken">✎</button>
+          </div>
+          <div class="ticket-actions ${isOpen ? 'open' : ''}">
+            <button data-action="hide" data-title="${encodeURIComponent(ev.summary || 'Zonder titel')}">verbergen voortaan</button>
+            <button class="danger" data-action="delete" data-id="${ev.id}">verwijderen</button>
+            ${isRecurring ? `<button class="danger" data-action="delete-series" data-recurring-id="${ev.recurringEventId}">hele reeks verwijderen</button>` : ''}
+          </div>
+        </div>`;
+    }).join('');
+
+    ticketsEl.querySelectorAll('[data-action="toggle-edit"]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        if (openActionsIds.has(id)) openActionsIds.delete(id);
+        else openActionsIds.add(id);
+        renderTickets(lastCalendarEvents);
+      });
+    });
+    ticketsEl.querySelectorAll('[data-action="hide"]').forEach(btn => {
+      btn.addEventListener('click', () => hideEventTitle(decodeURIComponent(btn.dataset.title)));
+    });
+    ticketsEl.querySelectorAll('[data-action="delete"]').forEach(btn => {
+      btn.addEventListener('click', () => deleteCalendarEvent(btn.dataset.id, false));
+    });
+    ticketsEl.querySelectorAll('[data-action="delete-series"]').forEach(btn => {
+      btn.addEventListener('click', () => deleteCalendarEvent(btn.dataset.recurringId, true));
+    });
+  }
+
+  async function hideEventTitle(title) {
+    await addDoc(collection(db, 'hiddenEvents'), {
+      uid: currentUser.uid,
+      title,
+      createdAt: serverTimestamp()
+    });
+  }
+
+  async function deleteCalendarEvent(eventId, isSeries) {
+    const msg = isSeries
+      ? 'Weet je zeker dat je de HELE reeks van deze terugkerende afspraak wilt verwijderen uit je Google Agenda? Dit kan niet ongedaan gemaakt worden.'
+      : 'Weet je zeker dat je deze afspraak wilt verwijderen uit je Google Agenda? Dit kan niet ongedaan gemaakt worden.';
+    if (!confirm(msg)) return;
+    try {
+      const res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+      if (!res.ok && res.status !== 410) throw new Error('delete failed: ' + res.status);
+      openActionsIds.delete(eventId);
+      await loadCalendar();
+    } catch (e) {
+      console.error(e);
+      alert('Verwijderen is mislukt. Mogelijk moet je opnieuw inloggen (uitloggen + inloggen) om schrijfrechten te geven.');
+    }
+  }
+</script>
+</body>
+</html>
