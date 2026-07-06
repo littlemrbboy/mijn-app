@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vaarbewijs 1 — trainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #121110;
+    --paper-card: #1B1917;
+    --ink: #F1EDE3;
+    --ink-soft: #9A9587;
+    --ink-contrast: #121110;
+    --line: #34312B;
+    --sport: #E2664B;
+    --sport-soft: #3A241D;
+    --werk: #7C93C4;
+    --werk-soft: #232A38;
+    --groei: #93B682;
+    --groei-soft: #232B1F;
+    --oldtimer: #C9A227;
+    --oldtimer-soft: #322C16;
+    --notes: #B98CC7;
+    --shadow: 0 1px 0 rgba(0,0,0,0.4), 0 8px 24px -12px rgba(0,0,0,0.6);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background: var(--paper);
+    background-image: radial-gradient(circle at 1px 1px, rgba(241,237,227,0.05) 1px, transparent 0);
+    background-size: 22px 22px;
+    color: var(--ink);
+    font-family:'Inter', sans-serif;
+    min-height:100vh;
+  }
+  .app{max-width:1080px; margin:0 auto; padding:40px 24px 80px;}
+
+  header.top{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    border-bottom:2px solid var(--ink); padding-bottom:18px; margin-bottom:28px;
+    flex-wrap:wrap; gap:14px;
+  }
+  .brand{font-family:'Fraunces', serif; font-size:28px; font-weight:600;}
+  .brand span{font-style:italic; font-weight:400; color:var(--ink-soft); font-size:16px;}
+  a.back-link{
+    font-size:13px; color:var(--ink-soft); text-decoration:underline; align-self:flex-end;
+  }
+  a.back-link:hover{color:var(--ink);}
+
+  .card{
+    background:var(--paper-card); border-radius:4px; box-shadow:var(--shadow);
+    padding:28px 32px; margin-bottom:20px;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:.12em;
+    text-transform:uppercase; color:var(--oldtimer); margin-bottom:6px;
+  }
+  h1,h2,h3{font-family:'Fraunces', serif; margin:0;}
+  .intro-sub{color:var(--ink-soft); font-size:14px; margin-top:6px; max-width:560px;}
+
+  .cat-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  @media (max-width:640px){.cat-grid{grid-template-columns:1fr;}}
+  .cat-btn{
+    text-align:left; background:var(--paper); border:1px solid var(--line);
+    border-radius:3px; padding:14px 16px; color:var(--ink); cursor:pointer;
+    font-family:'Inter', sans-serif; transition:border-color .15s, transform .1s;
+  }
+  .cat-btn:hover{border-color:var(--oldtimer); transform:translateY(-1px);}
+  .cat-btn .name{font-weight:600; font-size:14.5px; display:flex; justify-content:space-between; align-items:center;}
+  .cat-btn .meta{font-size:11.5px; color:var(--ink-soft); margin-top:5px; font-family:'IBM Plex Mono', monospace;}
+  .bar{height:4px; background:var(--line); border-radius:2px; margin-top:8px; overflow:hidden;}
+  .bar-fill{height:100%; background:linear-gradient(90deg, var(--groei), var(--oldtimer));}
+
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--ink); color:var(--ink-contrast); border:none;
+    font-family:'Inter', sans-serif; font-weight:600; font-size:14px;
+    padding:10px 18px; border-radius:3px; cursor:pointer; transition:opacity .15s, transform .1s;
+  }
+  .btn:hover{opacity:.88;}
+  .btn:active{transform:scale(0.98);}
+  .btn.ghost{background:transparent; color:var(--ink-soft); border:1px solid var(--line);}
+  .btn.ghost:hover{color:var(--ink); border-color:var(--ink-soft);}
+  .btn:disabled{opacity:.35; cursor:not-allowed;}
+  .btn.accent{background:var(--oldtimer); color:#1c1608;}
+
+  .row-card{
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;
+  }
+  .row-card h3{font-size:16px;}
+  .row-card .small{color:var(--ink-soft); font-size:13px; margin-top:4px;}
+
+  .quiz-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;}
+  .quiz-top .prog{font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--ink-soft);}
+  .timer{font-family:'IBM Plex Mono', monospace; font-size:14px; color:var(--oldtimer); font-weight:600;}
+  .timer.low{color:var(--sport);}
+
+  .qtext{font-size:16.5px; line-height:1.55; margin-bottom:18px; font-weight:500;}
+  .opt{
+    display:block; width:100%; text-align:left;
+    background:var(--paper); border:1px solid var(--line); border-radius:3px;
+    padding:12px 14px; margin-bottom:9px; color:var(--ink); cursor:pointer;
+    font-size:14.5px; font-family:'Inter', sans-serif; transition:border-color .15s, background .15s;
+  }
+  .opt:hover{border-color:var(--oldtimer);}
+  .opt.correct{background:var(--groei-soft); border-color:var(--groei);}
+  .opt.wrong{background:var(--sport-soft); border-color:var(--sport);}
+  .opt.disabled{cursor:default;}
+  .opt.dim{opacity:.55;}
+
+  .explain{
+    margin-top:14px; padding:14px 16px; border-radius:3px;
+    background:var(--paper); border-left:3px solid var(--oldtimer);
+    font-size:13.5px; line-height:1.55; color:var(--ink);
+  }
+  .explain b{color:var(--oldtimer);}
+
+  .footer-nav{display:flex; justify-content:space-between; margin-top:18px;}
+
+  .score-ring-wrap{display:flex; align-items:center; gap:22px; flex-wrap:wrap;}
+  .score-num{font-family:'Fraunces', serif; font-size:38px; font-weight:700;}
+  .score-label{font-size:12px; color:var(--ink-soft); font-family:'IBM Plex Mono', monospace; letter-spacing:.05em;}
+
+  .flash{
+    background:var(--paper); color:var(--ink); border-radius:4px;
+    padding:28px 20px; text-align:center; cursor:pointer; user-select:none;
+    min-height:220px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    border:1px solid var(--line);
+  }
+  .flash .hint{
+    font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft);
+    font-family:'IBM Plex Mono', monospace; margin-top:14px;
+  }
+
+  hr.divider{border:none; border-top:1px solid var(--line); margin:22px 0;}
+  .small-muted{font-size:12px; color:var(--ink-soft);}
+
+  footer.note{margin-top:24px; font-size:12px; color:var(--ink-soft); text-align:center;}
+
+  @media (max-width:640px){
+    .card{padding:22px 18px;}
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <!-- rendered by JS -->
+</div>
+
+<script>
+// ================= DATA =================
+const CATS = [
+  {key:"wet", name:"Wettelijke bepalingen", icon:"⚖"},
+  {key:"voorrang", name:"Voorrangsregels", icon:"⇄"},
+  {key:"betonning", name:"Betonning & verkeerstekens", icon:"◆"},
+  {key:"lichten", name:"Lichten, dagtekens & seinen", icon:"☾"},
+  {key:"waterweg", name:"Waterwegen & waterstanden", icon:"≈"},
+  {key:"techniek", name:"Techniek & voortstuwing", icon:"⚙"},
+  {key:"veiligheid", name:"Veiligheid & uitrusting", icon:"✚"},
+  {key:"manoeuvreren", name:"Varen & manoeuvreren", icon:"⚓"},
+];
+
+const QUESTIONS = {
+wet: [
+{q:"Vanaf welke leeftijd kun je in Nederland het Klein Vaarbewijs 1 behalen?",o:["16 jaar","18 jaar","Er is geen minimumleeftijd om het examen te doen, wel om het vaarbewijs te gebruiken","21 jaar"],c:2,e:"Je mag het theorie-examen op elke leeftijd afleggen, maar je moet 18 jaar zijn om het vaarbewijs daadwerkelijk te mogen gebruiken (met enkele uitzonderingen voor jongere vaarders onder toezicht)."},
+{q:"Waarvoor staat de afkorting BPR?",o:["Binnenvaartpolitiereglement","Boeien- en Peilingsreglement","Basisreglement Pleziervaart Rijkswater","Bepalingen voor Recreatievaart"],c:0,e:"Het BPR (Binnenvaartpolitiereglement) is het reglement dat de vaarregels op de meeste Nederlandse binnenwateren vastlegt."},
+{q:"Op welke wateren is doorgaans niet het BPR, maar een ander reglement van toepassing?",o:["Alle Nederlandse rivieren zonder uitzondering","Grote rivieren zoals de Rijn en de Waal (RPR) en sommige regionale wateren","Alleen op zee","Nergens, het BPR geldt overal in Nederland"],c:1,e:"Op de Rijn en aangrenzende wateren geldt het Rijnvaartpolitiereglement (RPR), en sommige regio's kennen een eigen reglement (bijvoorbeeld voor de Maas). Ken je vaargebied."},
+{q:"Wat is de wettelijke alcohollimiet voor het besturen van een vaartuig in Nederland?",o:["Er geldt geen limiet voor de recreatievaart","Dezelfde grenswaarde als voor het wegverkeer (0,5 promille, voor beginners lager)","1,0 promille","Alleen verboden bij aanvaring"],c:1,e:"Volgens de Scheepvaartverkeerswet geldt een vergelijkbare grens als in het wegverkeer; je mag niet varen met te veel alcohol in je bloed."},
+{q:"Wie is als schipper eindverantwoordelijk voor de veiligheid aan boord?",o:["De oudste opvarende","Degene die het vaarbewijs bezit, ongeacht wie stuurt","De schipper die op dat moment het vaartuig voert","De eigenaar van het vaartuig, ook als deze niet aan boord is"],c:2,e:"De feitelijke schipper (de persoon die op dat moment de leiding over het vaartuig heeft) draagt de verantwoordelijkheid, ook al is dit niet altijd de eigenaar."},
+{q:"Wat gebeurt er bij een aanvaring met schade of letsel?",o:["Je bent verplicht gegevens uit te wisselen en zo nodig hulp te verlenen","Je vaart door als er geen zichtbare schade is aan je eigen boot","Alleen de politie hoeft ingelicht te worden, verder niets","Je hoeft niets te doen als het de schuld van de ander is"],c:0,e:"Bij een aanvaring geldt een wettelijke plicht tot hulpverlening en het uitwisselen van gegevens (namen, verzekering, doel van de vaart)."},
+{q:"Voor welke wateren geldt het Klein Vaarbewijs 1 in hoofdzaak?",o:["Uitsluitend de Waddenzee","Rivieren, kanalen en meren (het binnenwater)","Alleen de Noordzee","Uitsluitend de grote rivieren"],c:1,e:"Klein Vaarbewijs 1 is bedoeld voor de vaart op rivieren, kanalen en meren; Vaarbewijs 2 komt erbij voor grotere/opener wateren zoals het IJsselmeer en de Waddenzee."},
+{q:"Wanneer ben je vaarbewijsplichtig met een motorboot?",o:["Altijd, ongeacht lengte of snelheid","Als de boot langer is dan 15 meter of sneller kan dan 20 km/u","Alleen bij vaartuigen met een buitenboordmotor","Nooit voor pleziervaartuigen"],c:1,e:"Een vaarbewijs is verplicht voor vaartuigen langer dan 15 meter of die sneller kunnen dan 20 km/u, op de wateren waar de vaarbewijsplicht geldt."}
+],
+voorrang: [
+{q:"Wie moet in het algemeen voorrang verlenen: een beroepsvaartuig of een recreatievaartuig?",o:["Het recreatievaartuig moet uitwijken voor het beroepsvaartuig","Het beroepsvaartuig moet altijd uitwijken","Ze hebben altijd gelijke rechten","Het grootste beroepsvaartuig bepaalt zelf de regels"],c:0,e:"Kleine (recreatie)vaartuigen moeten in de regel ruimte geven aan grote beroeps-, duw- en sleepvaart, die minder manoeuvreerruimte en een langere remweg hebben."},
+{q:"Een zeilboot vaart alleen op de wind, een motorboot nadert. Wie heeft voorrang?",o:["De motorboot, want die kan makkelijker uitwijken","De zeilboot, want een zeilend vaartuig gaat voor een vaartuig onder motor","Degene die het eerst een geluidssein geeft","Altijd het grootste vaartuig"],c:1,e:"Een zeilend vaartuig (dat niet ook de motor gebruikt) heeft in het algemeen voorrang op een vaartuig dat vaart onder motor."},
+{q:"Vaart een zeilboot met zowel zeilen gehesen als de motor aan, hoe wordt deze dan beschouwd?",o:["Nog steeds als zeilschip","Als motorschip, want de motor wordt gebruikt voor de voortstuwing","Als een bijzonder vaartuig zonder voorrang","Er gelden dan geen voorrangsregels"],c:1,e:"Zodra de motor wordt gebruikt om voort te bewegen, telt het vaartuig als motorvaartuig en vervalt het voordeel van 'zeilend vaartuig'."},
+{q:"Wat is de algemene regel bij het elkaar tegemoetkomen (ontmoeten) van twee vaartuigen in een vaargeul?",o:["Beide houden stuurboord (naar rechts) en passeren bakboord-op-bakboord","Beide houden bakboord (naar links) en passeren stuurboord-op-stuurboord","Wie het grootste is, bepaalt de te volgen zijde","Er is geen vaste regel, altijd onderling afstemmen"],c:0,e:"Bij een normale ontmoeting houdt ieder vaartuig in principe stuurboordwal (rechts), zodat beide vaartuigen bakboord-op-bakboord passeren."},
+{q:"Welk vaartuig moet bij het inhalen actie ondernemen om een veilige situatie te houden?",o:["Het vaartuig dat wordt ingehaald","Het inhalende vaartuig, dat vrij moet blijven van het in te halen vaartuig","Beide vaartuigen zijn evenveel verantwoordelijk","Het grootste van de twee vaartuigen"],c:1,e:"Het inhalende vaartuig moet ervoor zorgen dat het op veilige afstand blijft en pas invoegt als het duidelijk vrij is van het ingehaalde vaartuig."},
+{q:"Twee motorvaartuigen naderen elkaar op kruisende koersen. Wat is het algemene uitgangspunt?",o:["Het vaartuig dat het andere aan zijn stuurboordzijde heeft, moet wijken","Het vaartuig dat het andere aan zijn bakboordzijde heeft, moet wijken","Het snelste vaartuig heeft altijd voorrang","Er geldt geen regel, dit wordt ter plekke bepaald"],c:0,e:"Bij kruisende koersen moet in de regel het vaartuig wijken dat het andere vaartuig aan zijn stuurboordzijde ziet."},
+{q:"Wat betekent de 'medewerkingsregel' in het BPR?",o:["Dat de voorrangregel wordt vervangen door onderlinge afspraak via marifoon","Dat het vaartuig zonder voorrang, ondanks een voorrangsregel, tóch tijdig moet meewerken aan een veilige passage als de situatie daarom vraagt","Dat alleen beroepsvaart hoeft mee te werken aan voorrang","Dat de medewerkingsregel enkel geldt bij mist"],c:1,e:"Naast de voorrangsregel bestaat de medewerkingsregel: ook het vaartuig met voorrang moet meewerken aan een veilige en tijdige doorvaart, bijvoorbeeld door snelheid te matigen."},
+{q:"Bij het naderen van een nauwe doorvaart of engte, wat is verstandig gedrag?",o:["Zo snel mogelijk invaren voor een ander dat kan doen","Tijdig snelheid minderen en, indien nodig, wachten tot de doorvaart vrij is","Altijd voorrang nemen als je van stuurboord komt","Geluidssein geven is niet nodig bij een engte"],c:1,e:"Bij engten en beperkt zicht moet je vaart minderen en zo nodig wachten; een vaartuig dat al in de engte vaart heeft voorrang op een vaartuig dat nog moet invaren."}
+],
+betonning: [
+{q:"Welke kleur boei markeert de bakboordzijde van het vaarwater (komende van zee/benedenstrooms naar boven)?",o:["Groen","Geel","Rood","Zwart-wit"],c:2,e:"In het laterale (IALA-A) systeem markeren rode tonnen de bakboordzijde van het vaarwater, gezien in de richting 'komende van zee'."},
+{q:"Welke vorm heeft een boei die de stuurboordzijde aangeeft?",o:["Stomp/cilindervormig","Spits/kegelvormig","Bolvormig","Vierkant"],c:1,e:"Stuurboordtonnen zijn spits (kegelvormig) en groen; bakboordtonnen zijn stomp (cilindervormig) en rood."},
+{q:"Wat geven kilometerraaien of hectometerpaaltjes langs de rivier aan?",o:["De maximumsnelheid","De afstand in kilometers/hectometers langs de vaarweg, vaak gebruikt om een positie door te geven","De waterdiepte op die plek","De naam van de gemeente"],c:1,e:"Kilometeraanduidingen (raaien/paaltjes) helpen je positie te bepalen en worden bijvoorbeeld gebruikt bij het doorgeven van je locatie in noodgevallen."},
+{q:"Een rond bord met rode rand en een diagonale rode streep op het water betekent meestal:",o:["Een gebod (verplichting)","Een verbod","Alleen informatie, geen verplichting","Aanbevolen vaarrichting"],c:1,e:"Ronde borden met rode rand geven, net als op de weg, doorgaans een verbod aan (bijvoorbeeld verboden voor motorboten of een vaarverbod)."},
+{q:"Een rond, blauw verkeersbord op het water geeft meestal aan:",o:["Een verbod","Een gebod, bijvoorbeeld een verplichte vaarrichting of geluidssein","Enkel toeristische informatie","Dat er geen regels van toepassing zijn"],c:1,e:"Blauwe ronde borden geven een gebod aan: iets wat je verplicht moet doen, zoals een bepaalde koers aanhouden of een geluidssein geven."},
+{q:"Wat is het verschil tussen een boei en een baken?",o:["Er is geen verschil, het zijn synoniemen","Een boei drijft op het water, een baken staat vast op de oever of in de bodem verankerd","Een baken is altijd geel, een boei nooit","Boeien zijn alleen voor de nacht, bakens alleen overdag"],c:1,e:"Boeien zijn drijvende merktekens, bakens zijn vaste merktekens (bijvoorbeeld op palen aan de oever) die eveneens het vaarwater markeren."},
+{q:"Een geel object in het water (los van het rood/groen systeem) geeft meestal aan:",o:["Een bijzondere aanduiding, bijvoorbeeld een meetpunt of afgebakend gebied, niet de reguliere doorvaartroute","Altijd de hoofdvaarroute","Een verbod om te ankeren","Een aanduiding voor scheepvaartverkeer richting zee"],c:0,e:"Gele tekens hebben meestal een speciale betekenis (bijvoorbeeld markering van een gebied of meetinstallatie) en volgen niet het gewone rood/groen laterale systeem."},
+{q:"Waarom is het belangrijk om te weten welke kant 'komende van zee' is op jouw vaarwater?",o:["Omdat dit bepaalt aan welke zijde rood en welke zijde groen betonning ligt","Omdat je daarmee de waterdiepte kunt berekenen","Omdat het de maximumsnelheid bepaalt","Dit heeft geen enkel praktisch nut"],c:0,e:"De betonning is gedefinieerd ten opzichte van de richting 'komende van zee'; ken je die richting niet, dan kun je rood/groen verkeerd interpreteren."}
+],
+lichten: [
+{q:"Welke kleur heeft het boordlicht aan de bakboordzijde van een varend vaartuig in het donker?",o:["Groen","Wit","Rood","Geel"],c:2,e:"Bakboord (links, gezien vanaf het achterschip naar voren) toont een rood licht, stuurboord (rechts) toont groen."},
+{q:"Een klein pleziervaartuig mag 's nachts de boordlichten en het toplicht vaak combineren in:",o:["Eén enkele lantaarn (driekleurenlicht/toplantaarn) vooraan","Een geel zwaailicht op het dak","Er is geen enkele versimpeling toegestaan voor kleine vaartuigen","Alleen een heklicht is voldoende"],c:0,e:"Voor kleinere vaartuigen is het toegestaan de rode, groene en witte lichten te combineren in één lantaarn, mits deze voldoet aan de eisen."},
+{q:"Welk dagteken voert een vaartuig dat ten anker ligt overdag?",o:["Een zwarte bol","Een zwarte cilinder","Een zwarte ruit","Een witte vlag"],c:0,e:"Een vaartuig dat overdag voor anker ligt, voert een zwarte bol op een goed zichtbare plaats."},
+{q:"Wat betekent een wit licht dat rondom (360°) zichtbaar is bij een stilliggend klein vaartuig 's nachts?",o:["Het vaartuig vaart en heeft voorrang","Het vaartuig ligt stil of ten anker","Het vaartuig is in nood","Het vaartuig geeft een waarschuwing voor mist"],c:1,e:"Een rondom zichtbaar wit licht ('ankerlicht') geeft aan dat het vaartuig stilligt of voor anker ligt, zodat andere schepen het kunnen zien en ontwijken."},
+{q:"Wanneer wordt in de regel één lange stoot gegeven?",o:["Bij het naderen van een onoverzichtelijke bocht of engte","Bij het geven van voorrang aan een tegenligger","Bij het aanleggen aan een steiger","Bij het invaren van een jachthaven"],c:0,e:"Eén lange stoot wordt onder andere gebruikt bij het naderen van een bocht of kruising met beperkt zicht, om andere vaarweggebruikers te waarschuwen."},
+{q:"Wat betekent een reeks van minstens vijf korte stoten?",o:["Ik wijk uit naar bakboord","Een waarschuwing dat er gevaar dreigt of dat de bedoeling van een ander vaartuig niet begrepen wordt","Ik ga voor anker","Het einde van de vaardag"],c:1,e:"Een reeks korte, snel opeenvolgende stoten is een alarm-/waarschuwingssein: gevaar of onbegrip over de manoeuvre van een ander vaartuig."},
+{q:"Een varend zeilvaartuig dat óók de motor gebruikt, voert overdag als dagteken:",o:["Een zwarte bol","Een zwarte kegel met de punt naar beneden","Een zwarte cilinder","Geen enkel dagteken is nodig"],c:1,e:"Wanneer een zeilvaartuig zowel zeil als motor gebruikt, moet overdag een zwarte kegel (punt naar beneden) gevoerd worden zodat andere vaarders weten dat het als motorvaartuig geldt."},
+{q:"Wat is het doel van navigatieverlichting in het algemeen?",o:["Decoratie van het vaartuig","Andere vaarweggebruikers laten zien waar je vaart, in welke richting en wat voor type vaartuig je bent","Alleen om wettelijk in orde te zijn, geen praktisch nut","Het is uitsluitend verplicht op zee, niet op de binnenwateren"],c:1,e:"Navigatieverlichting maakt je positie, vaarrichting en (deels) vaartuigtype zichtbaar voor andere schepen, essentieel voor veilige navigatie in het donker."}
+],
+waterweg: [
+{q:"Hoe bereken je de actuele doorvaarthoogte onder een brug?",o:["Je neemt altijd de aangegeven brughoogte, ongeacht de waterstand","Je past de aangegeven brughoogte aan op basis van het verschil tussen actuele waterstand en het referentiepeil","Je meet de hoogte zelf met een dieptemeter","De doorvaarthoogte verandert nooit"],c:1,e:"Staat de waterstand hoger dan het referentiepeil, dan is de werkelijke doorvaarthoogte lager dan aangegeven; staat het water lager, dan is er juist meer ruimte."},
+{q:"Wat gebeurt er met de doorvaarthoogte als de waterstand hoger is dan het referentiepeil?",o:["De doorvaarthoogte wordt groter","De doorvaarthoogte wordt kleiner","Dit heeft geen invloed op de doorvaarthoogte","De brug gaat automatisch open"],c:1,e:"Een hogere waterstand betekent minder ruimte tussen water en brug: de doorvaarthoogte wordt kleiner."},
+{q:"Waarom is het belangrijk om de actuele waterdiepte te kennen voordat je een ondiep gedeelte invaart?",o:["Om vast te stellen of je voldoende kielspeling (ruimte onder de kiel) hebt om vastlopen te voorkomen","Om de maximumsnelheid te bepalen","Om te weten hoeveel brandstof je nodig hebt","Waterdiepte is nooit relevant voor de recreatievaart"],c:0,e:"Voldoende water onder de kiel (kielspeling) voorkomt aan de grond lopen; op ondiepe stukken moet je de actuele diepte en je diepgang goed inschatten."},
+{q:"Wat is over het algemeen een betrouwbare bron voor actuele waterstanden en verwachte waterstanden op de Nederlandse rivieren?",o:["Officiële waterstandinformatie (bijvoorbeeld van Rijkswaterstaat)","Een gok op basis van het weer van gisteren","De kleur van het water","Altijd de laagste waterstand van het jaar aannemen"],c:0,e:"Voor een betrouwbare inschatting van actuele en verwachte waterstanden raadpleeg je officiële bronnen zoals Rijkswaterstaat-waterinformatie."},
+{q:"Wat is een 'engte' in het kader van de vaarweg?",o:["Een breed stuk vaarwater zonder obstakels","Een versmalling van het vaarwater waar doorgaans niet twee grote vaartuigen elkaar veilig kunnen passeren","Een kunstmatig meer","Een gebied waar alleen gezeild mag worden"],c:1,e:"Een engte is een vernauwing in het vaarwater; hier gelden vaak extra voorzichtigheid en specifieke voorrangsafspraken omdat passeren lastig of onmogelijk is."},
+{q:"Wat kan wind en stroming doen met je vaargedrag en koers?",o:["Niets, een vaartuig volgt altijd exact de gestuurde koers","Ze kunnen je vaartuig laten afdrijven van de bedoelde koers, waar je voor moet corrigeren","Alleen invloed bij zeilboten, nooit bij motorboten","Stroming heeft alleen invloed op zee, nooit op rivieren"],c:1,e:"Wind en stroming kunnen een vaartuig laten afdrijven (verzetten); je moet hiermee rekening houden en je koers eventueel corrigeren."},
+{q:"Wat betekent het als een vaarweg is aangeduid als 'stroomopwaarts' bevaren?",o:["Je vaart mee met de stroom","Je vaart tegen de stroom in, richting de bron van de rivier","Dit heeft geen betrekking op de stroomrichting","Je vaart altijd stroomafwaarts op een rivier"],c:1,e:"Stroomopwaarts varen betekent tegen de stroomrichting in varen (richting de bovenloop van de rivier)."}
+],
+techniek: [
+{q:"Waarvoor dient de koelwaterstroom die je bij een buitenboordmotor vaak ziet spuiten?",o:["Om te laten zien dat de motor draait, geen technische functie","Om de motor te koelen en oververhitting te voorkomen","Om de accu op te laden","Om de brandstof te zuiveren"],c:1,e:"De koelwaterstraal is een controlepunt dat aangeeft dat het koelsysteem werkt en de motor voldoende gekoeld wordt."},
+{q:"Wat controleer je voor vertrek standaard aan de brandstof- en motorinstallatie?",o:["Niets, dit hoeft alleen bij onderhoudsbeurten","Brandstofpeil, eventuele lekkages, oliepeil en de werking van de motor","Alleen de kleur van de brandstof","De motor hoeft nooit gecontroleerd te worden bij kort varen"],c:1,e:"Een basiscontrole voor vertrek omvat brandstof- en oliepeil, zichtbare lekkages en of de motor goed start en draait."},
+{q:"Wat is de functie van de accu aan boord?",o:["Alleen verlichting van de cabine","Het starten van de motor en het voeden van elektrische systemen zoals navigatieverlichting","Uitsluitend voor de marifoon","De accu heeft geen functie bij kleine vaartuigen"],c:1,e:"De accu levert stroom voor onder andere het starten van de motor, navigatieverlichting, pompen en andere elektrische apparatuur aan boord."},
+{q:"Wat gebeurt er met de besturing van een vaartuig als de motor in neutraal (vrijloop) staat en er geen vaart meer is?",o:["De besturing werkt dan nog optimaal","Het stuur/roer verliest effectiviteit omdat er onvoldoende waterstroom langs is","De boot stuurt vanzelf recht","Dit heeft geen invloed op de bestuurbaarheid"],c:1,e:"Roer of stuureenheid werkt op de waterstroom langs het roerblad; zonder vaart of schroefstroom neemt de stuurbaarheid sterk af."},
+{q:"Waarom is het belangrijk om te weten hoe je vaartuig reageert bij achteruitslaan?",o:["Omdat een schroef vaak zijdelingse kracht (schroefwerking) geeft die de boot laat afwijken van een rechte koers","Achteruitslaan heeft nooit invloed op de koers","Dit is alleen relevant voor grote schepen","Om precies te weten hoe snel je vaart"],c:0,e:"Door schroefwerking trekt een vaartuig bij achteruitslaan vaak naar één kant; hier moet je bij het manoeuvreren (bijvoorbeeld afmeren) rekening mee houden."},
+{q:"Wat is een goede gewoonte met betrekking tot het brandstofsysteem voor een lange tocht?",o:["Nooit het brandstofpeil controleren, de motor geeft het vanzelf aan","Voldoende brandstof meenemen inclusief een marge voor tegenwind/stroom en onvoorziene omstandigheden","Altijd de tank helemaal leeg laten lopen voor vertrek","Brandstof is nooit een aandachtspunt bij korte tochten"],c:1,e:"Reken met een marge boven de verwachte verbruiksbehoefte, zeker bij tegenwind of stroming, om brandstoftekort te voorkomen."}
+],
+veiligheid: [
+{q:"Wat is verplicht aanwezig te hebben als reddingsmiddel voor opvarenden op veel pleziervaartuigen?",o:["Reddingsvesten of zwemvesten, passend bij het aantal opvarenden","Alleen een fluit","Een EHBO-doos is voldoende, vesten zijn niet nodig","Reddingsmiddelen zijn nooit verplicht op klein vaarwater"],c:0,e:"Reddingsvesten (of zwemvesten) voor alle opvarenden zijn een belangrijk onderdeel van de veiligheidsuitrusting, zeker voor kinderen en niet-zwemmers."},
+{q:"Wat is een brandblusser aan boord bedoeld om te doen?",o:["Alleen decoratief, zelden echt nodig","Een beginnende brand (bijvoorbeeld motorbrand) snel kunnen blussen om erger te voorkomen","Uitsluitend gebruiken bij een aanvaring","Vervangt de noodzaak van reddingsvesten"],c:1,e:"Een brandblusser aan boord stelt je in staat om snel te reageren op een beginnende brand, bijvoorbeeld in de motorruimte."},
+{q:"Wat doe je als eerste bij een man-over-boord (MOB) situatie?",o:["Onmiddellijk de motor stoppen zonder verder iets te doen","Aandacht houden op de drenkeling, koers/vaart aanpassen om veilig terug te keren en een reddingsmiddel toewerpen","Doorvaren en de situatie negeren","Alleen een geluidssein geven en verder niets doen"],c:1,e:"Bij MOB is het cruciaal de positie van de drenkeling in het oog te houden, een reddingsmiddel toe te werpen en veilig te manoeuvreren om terug te keren, rekening houdend met wind en stroom."},
+{q:"Waarom is een marifoon of telefoon aan boord nuttig voor de veiligheid?",o:["Om alleen muziek te beluisteren","Om in noodgevallen hulp te kunnen inroepen en communicatie met andere vaarweggebruikers of bediening mogelijk te maken","Marifoons zijn verboden voor de recreatievaart","Ze hebben geen functie op binnenwateren"],c:1,e:"Communicatiemiddelen maken het mogelijk om hulp in te roepen bij nood en te communiceren met bijvoorbeeld bruggen, sluizen of andere schepen."},
+{q:"Wat is een belangrijke reden om vóór vertrek een weersverwachting te raadplegen?",o:["Om te weten of je zonnebrand nodig hebt","Om in te schatten of wind, buien of onweer een veilige vaartocht in de weg staan","Weer heeft geen invloed op kleine vaartuigen","Dit is alleen relevant voor zeilboten"],c:1,e:"Wind, buien en onweer kunnen de veiligheid van een vaartocht flink beïnvloeden; vooraf de verwachting checken hoort bij verantwoord varen."},
+{q:"Wat hoort standaard thuis in een EHBO-set aan boord?",o:["Uitsluitend pijnstillers","Basismiddelen voor eerste hulp zoals verband, pleisters en desinfectiemiddel","Een reddingsvest","Een marifoon"],c:1,e:"Een basale EHBO-uitrusting met verbandmateriaal en desinfectiemiddel hoort bij verantwoorde veiligheidsvoorbereiding aan boord."}
+],
+manoeuvreren: [
+{q:"Bij het aanleggen met wind die van de wal af waait (van het water naar de kant), wat is een aandachtspunt?",o:["De wind duwt de boot juist tegen de kant, dit maakt aanleggen makkelijker","De wind duwt de boot van de kant af, je moet actiever sturen/motorkracht gebruiken om aan te leggen","Wind heeft nooit invloed op het aanleggen","Je moet altijd achteruit aanleggen bij wind van de wal"],c:1,e:"Bij wind vanaf de kant (van de wal af) drijft de boot juist weg van de steiger; je moet hier actief op corrigeren om toch goed aan te kunnen leggen."},
+{q:"Wat is een verstandige aanpak bij het ankeren op een plek met stroming?",o:["Ankeren zonder rekening te houden met stroomrichting","Voldoende ankerketting/-lijn (kettinglengte) uitzetten in verhouding tot de waterdiepte en rekening houden met de stroomrichting bij het uitzwaaien van het vaartuig","Altijd zo min mogelijk ankerlijn vieren","Ankeren is nooit nodig op stromend water"],c:1,e:"Bij stroming zwaait het vaartuig rond het anker; genoeg scoop (verhouding ankerlijn/diepte) en aandacht voor de stroomrichting voorkomen dat het anker doorkrabt."},
+{q:"Waarom is het verstandig om bij het manoeuvreren in een drukke haven vooraf een plan te maken?",o:["Plannen is niet nodig, improviseren werkt altijd beter","Zodat je weet welke correcties nodig zijn en niet wordt verrast door wind, stroom of ander verkeer","Omdat het wettelijk verplicht is een geschreven plan te hebben","Een plan is alleen nodig voor beroepsvaart"],c:1,e:"Door vooraf na te denken over wind, stroom, ruimte en andere vaarweggebruikers verklein je de kans op een ongeval of aanvaring tijdens het manoeuvreren."},
+{q:"Bij het passeren van een sluis, wat is gebruikelijk gedrag voor kleine vaartuigen?",o:["Altijd als eerste invaren, ongeacht andere aanwijzingen","De aanwijzingen van de sluiswachter en de geldende voorrangsvolgorde (vaak beroepsvaart eerst) opvolgen","Zo hard mogelijk invaren voor een snelle doorvaart","Sluizen hoeven niet gemeld te worden"],c:1,e:"Bij sluizen volg je de aanwijzingen van de bediening; vaak krijgt beroepsvaart voorrang en meld je je tijdig aan, bijvoorbeeld via marifoon of een meldpunt."},
+{q:"Wat is het effect van bakboord- of stuurboordwind op het afmeren met de kop in de wind versus de wind in de rug?",o:["Windrichting heeft geen enkel effect op het afmeren","Afmeren met de wind tegen (van voren) geeft meer controle over snelheid dan met de wind mee (van achteren)","Afmeren is altijd makkelijker met de wind in de rug","Wind speelt alleen een rol bij zeilboten"],c:1,e:"Bij wind tegen (van voren) rem je vanzelf al af, wat meer controle geeft; met de wind in de rug (mee) moet je juist extra opletten om niet te hard tegen de kade te komen."},
+{q:"Wat is een goede reden om vóór het wegvaren de omgeving en andere scheepvaart te controleren?",o:["Om te voorkomen dat je afmeert bij een vaartuig dat net wil vertrekken of aankomen, en om aanvaring te vermijden","Dit is niet nodig als je zelf haast hebt","Alleen bij grote schepen is dit relevant","Het is puur een formaliteit zonder praktisch nut"],c:0,e:"Voor het wegvaren check je op nadering van ander verkeer, stroming en ruimte om veilig en zonder verrassingen los te komen."}
+]
+};
+
+const BUOY_CARDS = [
+  {front:"Rode, stompe (cilindervormige) ton", back:"Bakboordzijde van het vaarwater — komende van zee gezien houd je deze aan bakboord (links) aan."},
+  {front:"Groene, spitse (kegelvormige) ton", back:"Stuurboordzijde van het vaarwater — komende van zee gezien houd je deze aan stuurboord (rechts) aan."},
+  {front:"Rond bord, rode rand, rode diagonale streep", back:"Verbodsbord — geeft aan dat iets niet mag (bijv. verboden voor motorvaartuigen of vaarverbod)."},
+  {front:"Rond bord, blauw", back:"Gebodsbord — geeft een verplichting aan, bijvoorbeeld een verplichte vaarrichting of geluidssein."},
+  {front:"Zwarte bol (dagteken)", back:"Vaartuig ligt overdag ten anker."},
+  {front:"Zwarte kegel, punt naar beneden (dagteken)", back:"Zeilvaartuig dat ook de motor gebruikt — telt als motorvaartuig."},
+  {front:"Wit licht, rondom zichtbaar ('s nachts)", back:"Ankerlicht — het vaartuig ligt stil of voor anker."},
+  {front:"Geel object/teken in het water", back:"Bijzondere aanduiding (bijv. meetpunt of afgezet gebied) — geen gewone lateral betonning."},
+  {front:"Kilometerraai / hectometerpaaltje", back:"Geeft de afstand langs de vaarweg aan, handig om je positie door te geven."},
+  {front:"Rood boordlicht", back:"Bakboordzijde van een varend vaartuig in het donker (links, gezien vanaf achter naar voor)."},
+  {front:"Groen boordlicht", back:"Stuurboordzijde van een varend vaartuig in het donker (rechts)."},
+];
+
+// ================= STORAGE (localStorage — dit is een echte site, geen Claude-artifact) =================
+const STORE_KEY = "vaarbewijs1_progress_v1";
+let progress = {};
+function loadProgress(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    progress = raw ? JSON.parse(raw) : {};
+  }catch(e){ progress = {}; }
+}
+function saveProgress(){
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify(progress)); }catch(e){}
+}
+
+// ================= STATE =================
+let view = "home";
+let curCat = null;
+let qIdx = 0;
+let selectedOpt = null;
+let sessionCorrect = 0;
+let sessionAnswers = [];
+let examQuestions = [];
+let examAnswers = [];
+let examTimeLeft = 60*60;
+let examTimer = null;
+let flashIdx = 0;
+let flashFlipped = false;
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function render(){
+  const app = document.getElementById('app');
+  if(view === "home") app.innerHTML = renderHome();
+  else if(view === "practice") app.innerHTML = renderPractice();
+  else if(view === "practiceresult") app.innerHTML = renderPracticeResult();
+  else if(view === "flash") app.innerHTML = renderFlash();
+  else if(view === "exam") app.innerHTML = renderExam();
+  else if(view === "examresult") app.innerHTML = renderExamResult();
+  attachHandlers();
+}
+
+function catMeta(catKey){
+  const p = progress[catKey];
+  const total = QUESTIONS[catKey].length;
+  const best = p ? p.best : null;
+  return {total, best};
+}
+
+function renderHome(){
+  const catButtons = CATS.map(c=>{
+    const m = catMeta(c.key);
+    const pct = m.best !== null ? Math.round((m.best/m.total)*100) : 0;
+    return `
+      <div class="cat-btn" data-cat="${c.key}">
+        <div class="name"><span>${c.icon}  ${c.name}</span><span class="small-muted">${QUESTIONS[c.key].length} vr.</span></div>
+        <div class="meta">${m.best !== null ? `Beste score: ${m.best}/${m.total}` : "Nog niet geoefend"}</div>
+        <div class="bar"><div class="bar-fill" style="width:${pct}%"></div></div>
+      </div>`;
+  }).join("");
+
+  return `
+    <header class="top">
+      <div>
+        <div class="eyebrow">Vaarbewijs 1 · Zelfstudie</div>
+        <div class="brand">Vaarbewijs 1<span> — theorie trainer</span></div>
+      </div>
+      <a class="back-link" href="/">← Terug naar Mijn Dag</a>
+    </header>
+
+    <div class="card">
+      <div class="eyebrow">Onderwerpen</div>
+      <div class="cat-grid">${catButtons}</div>
+    </div>
+
+    <div class="card row-card">
+      <div>
+        <h3>Examensimulatie</h3>
+        <div class="small">40 vragen · 60 minuten · slaagnorm 70% (28/40) — net als het echte CBR-examen.</div>
+      </div>
+      <button class="btn accent" id="start-exam">Start simulatie</button>
+    </div>
+
+    <div class="card row-card">
+      <div>
+        <h3>Flashcards: betonning &amp; tekens</h3>
+        <div class="small">${BUOY_CARDS.length} kaarten — boeien, borden, dagtekens en lichten.</div>
+      </div>
+      <button class="btn ghost" id="start-flash">Open flashcards</button>
+    </div>
+
+    <hr class="divider">
+    <div class="small-muted">Deze trainer is een oefenhulpmiddel op basis van de algemene CBR-examenonderwerpen voor Klein Vaarbewijs 1. Het vervangt geen officieel lesmateriaal — controleer actuele regelgeving altijd via het CBR of een erkende vaarschool.</div>
+    <footer class="note">Voortgang wordt lokaal in je browser bewaard.</footer>
+  `;
+}
+
+function renderPractice(){
+  const list = QUESTIONS[curCat];
+  const q = list[qIdx];
+  const answered = selectedOpt !== null;
+  const optsHtml = q.o.map((opt,i)=>{
+    let cls = "opt";
+    if(answered){
+      if(i===q.c) cls += " correct";
+      else if(i===selectedOpt) cls += " wrong";
+      else cls += " dim";
+      cls += " disabled";
+    }
+    return `<button class="${cls}" data-opt="${i}" ${answered?'disabled':''}>${opt}</button>`;
+  }).join("");
+
+  return `
+    <header class="top">
+      <div>
+        <div class="eyebrow">${CATS.find(c=>c.key===curCat).name}</div>
+        <div class="brand" style="font-size:22px;">Oefenvragen</div>
+      </div>
+      <button class="btn ghost" id="back-home">← Terug</button>
+    </header>
+    <div class="card">
+      <div class="quiz-top">
+        <div class="prog">Vraag ${qIdx+1} / ${list.length}</div>
+        <div class="prog">Score: ${sessionCorrect} goed</div>
+      </div>
+      <div class="qtext">${q.q}</div>
+      <div>${optsHtml}</div>
+      ${answered ? `<div class="explain"><b>Uitleg:</b> ${q.e}</div>` : ""}
+      <div class="footer-nav">
+        <span></span>
+        ${answered ? `<button class="btn accent" id="next-q">${qIdx+1 < list.length ? "Volgende vraag →" : "Bekijk resultaat →"}</button>` : ""}
+      </div>
+    </div>
+  `;
+}
+
+function renderPracticeResult(){
+  const list = QUESTIONS[curCat];
+  const pct = Math.round((sessionCorrect/list.length)*100);
+  return `
+    <header class="top">
+      <div>
+        <div class="eyebrow">${CATS.find(c=>c.key===curCat).name}</div>
+        <div class="brand" style="font-size:22px;">Resultaat</div>
+      </div>
+      <button class="btn ghost" id="back-home">← Terug</button>
+    </header>
+    <div class="card">
+      <div class="score-ring-wrap">
+        ${compassSvg(pct)}
+        <div>
+          <div class="score-num">${sessionCorrect}/${list.length}</div>
+          <div class="score-label">${pct}% GOED &nbsp;·&nbsp; ${pct>=70? "RUIM VOLDOENDE" : "NOG OEFENEN"}</div>
+        </div>
+      </div>
+      <hr class="divider">
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn accent" id="retry-cat">Opnieuw oefenen</button>
+        <button class="btn ghost" id="back-home-2">Naar overzicht</button>
+      </div>
+    </div>
+  `;
+}
+
+function compassSvg(pct){
+  const r = 46, c = 2*Math.PI*r;
+  const off = c - (c*pct/100);
+  const color = pct>=70 ? "var(--groei)" : "var(--sport)";
+  return `
+  <svg width="110" height="110" viewBox="0 0 110 110">
+    <circle cx="55" cy="55" r="${r}" fill="none" stroke="var(--line)" stroke-width="8"/>
+    <circle cx="55" cy="55" r="${r}" fill="none" stroke="${color}" stroke-width="8"
+      stroke-dasharray="${c}" stroke-dashoffset="${off}" stroke-linecap="round"
+      transform="rotate(-90 55 55)"/>
+    <g transform="translate(55,55)">
+      <line x1="0" y1="-30" x2="0" y2="30" stroke="var(--oldtimer)" stroke-width="1.2" opacity="0.6"/>
+      <line x1="-30" y1="0" x2="30" y2="0" stroke="var(--oldtimer)" stroke-width="1.2" opacity="0.6"/>
+      <path d="M0,-22 L5,0 L0,22 L-5,0 Z" fill="var(--oldtimer)"/>
+      <text x="0" y="4" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="var(--ink)">N</text>
+    </g>
+  </svg>`;
+}
+
+function renderFlash(){
+  const card = BUOY_CARDS[flashIdx];
+  return `
+    <header class="top">
+      <div>
+        <div class="eyebrow">Flashcards</div>
+        <div class="brand" style="font-size:22px;">Betonning &amp; verkeerstekens</div>
+      </div>
+      <button class="btn ghost" id="back-home">← Terug</button>
+    </header>
+    <div class="card">
+      <div class="quiz-top"><div class="prog">Kaart ${flashIdx+1} / ${BUOY_CARDS.length}</div></div>
+      <div class="flash" id="flash-card">
+        <h2 style="font-size:18px;">${flashFlipped ? card.back : card.front}</h2>
+        <div class="hint">${flashFlipped ? "Klik om terug te draaien" : "Klik om de betekenis te zien"}</div>
+      </div>
+      <div class="footer-nav">
+        <button class="btn ghost" id="flash-prev" ${flashIdx===0?'disabled':''}>← Vorige</button>
+        <button class="btn accent" id="flash-next" ${flashIdx===BUOY_CARDS.length-1?'disabled':''}>Volgende →</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderExam(){
+  const q = examQuestions[qIdx];
+  const answered = examAnswers[qIdx] !== undefined;
+  const mins = Math.floor(examTimeLeft/60);
+  const secs = String(examTimeLeft%60).padStart(2,'0');
+  const optsHtml = q.o.map((opt,i)=>{
+    let cls = "opt";
+    if(answered){
+      if(i===q.c) cls += " correct";
+      else if(i===examAnswers[qIdx].sel) cls += " wrong";
+      else cls += " dim";
+      cls += " disabled";
+    }
+    return `<button class="${cls}" data-opt="${i}" ${answered?'disabled':''}>${opt}</button>`;
+  }).join("");
+
+  return `
+    <header class="top">
+      <div>
+        <div class="eyebrow">Examensimulatie</div>
+        <div class="brand" style="font-size:22px;">Vraag ${qIdx+1} van ${examQuestions.length}</div>
+      </div>
+      <div class="timer ${examTimeLeft<300?'low':''}">⏱ ${mins}:${secs}</div>
+    </header>
+    <div class="card">
+      <div class="qtext">${q.q}</div>
+      <div>${optsHtml}</div>
+      ${answered ? `<div class="explain"><b>Uitleg:</b> ${q.e}</div>` : ""}
+      <div class="footer-nav">
+        <span></span>
+        ${answered ? `<button class="btn accent" id="exam-next">${qIdx+1 < examQuestions.length ? "Volgende vraag →" : "Bekijk uitslag →"}</button>` : ""}
+      </div>
+    </div>
+  `;
+}
+
+function renderExamResult(){
+  const correct = examAnswers.filter(a=>a.correct).length;
+  const total = examQuestions.length;
+  const pct = Math.round((correct/total)*100);
+  const passed = pct >= 70;
+  return `
+    <header class="top">
+      <div>
+        <div class="eyebrow">Examensimulatie</div>
+        <div class="brand" style="font-size:22px;">Uitslag</div>
+      </div>
+      <button class="btn ghost" id="back-home">← Terug</button>
+    </header>
+    <div class="card">
+      <div class="score-ring-wrap">
+        ${compassSvg(pct)}
+        <div>
+          <div class="score-num">${correct}/${total}</div>
+          <div class="score-label" style="color:${passed?'var(--groei)':'var(--sport)'};">${pct}% &nbsp;·&nbsp; ${passed ? "GESLAAGD (simulatie)" : "NOG NIET VOLDOENDE"}</div>
+        </div>
+      </div>
+      <div class="small-muted" style="margin-top:14px;">Slaagnorm bij het echte CBR-examen: 70% (28 van de 40 vragen).</div>
+      <hr class="divider">
+      <button class="btn accent" id="retry-exam">Nieuwe simulatie</button>
+      <button class="btn ghost" id="back-home-2">Naar overzicht</button>
+    </div>
+  `;
+}
+
+function attachHandlers(){
+  const $ = s => document.querySelector(s);
+  const $$ = s => document.querySelectorAll(s);
+
+  $$('.cat-btn').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      curCat = el.getAttribute('data-cat');
+      qIdx = 0; selectedOpt = null; sessionCorrect = 0; sessionAnswers = [];
+      view = "practice"; render();
+    });
+  });
+
+  if($('#start-exam')) $('#start-exam').addEventListener('click', startExam);
+  if($('#start-flash')) $('#start-flash').addEventListener('click', ()=>{
+    flashIdx = 0; flashFlipped = false; view="flash"; render();
+  });
+  if($('#back-home')) $('#back-home').addEventListener('click', ()=>{
+    if(view==="exam"){ clearInterval(examTimer); }
+    view="home"; render();
+  });
+  if($('#back-home-2')) $('#back-home-2').addEventListener('click', ()=>{view="home"; render();});
+
+  if(view==="practice"){
+    $$('.opt').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        selectedOpt = parseInt(el.getAttribute('data-opt'));
+        const q = QUESTIONS[curCat][qIdx];
+        const correct = selectedOpt === q.c;
+        if(correct) sessionCorrect++;
+        sessionAnswers.push({correct});
+        render();
+      });
+    });
+    if($('#next-q')) $('#next-q').addEventListener('click', ()=>{
+      if(qIdx+1 < QUESTIONS[curCat].length){
+        qIdx++; selectedOpt = null; render();
+      } else {
+        finishPractice();
+      }
+    });
+  }
+
+  if(view==="practiceresult"){
+    if($('#retry-cat')) $('#retry-cat').addEventListener('click', ()=>{
+      qIdx=0; selectedOpt=null; sessionCorrect=0; sessionAnswers=[];
+      view="practice"; render();
+    });
+  }
+
+  if(view==="flash"){
+    if($('#flash-card')) $('#flash-card').addEventListener('click', ()=>{
+      flashFlipped = !flashFlipped; render();
+    });
+    if($('#flash-prev')) $('#flash-prev').addEventListener('click', ()=>{
+      flashIdx=Math.max(0,flashIdx-1); flashFlipped=false; render();
+    });
+    if($('#flash-next')) $('#flash-next').addEventListener('click', ()=>{
+      flashIdx=Math.min(BUOY_CARDS.length-1,flashIdx+1); flashFlipped=false; render();
+    });
+  }
+
+  if(view==="exam"){
+    $$('.opt').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        const sel = parseInt(el.getAttribute('data-opt'));
+        const q = examQuestions[qIdx];
+        examAnswers[qIdx] = {sel, correct: sel===q.c};
+        render();
+      });
+    });
+    if($('#exam-next')) $('#exam-next').addEventListener('click', ()=>{
+      if(qIdx+1 < examQuestions.length){ qIdx++; render(); }
+      else { finishExam(); }
+    });
+  }
+
+  if(view==="examresult"){
+    if($('#retry-exam')) $('#retry-exam').addEventListener('click', startExam);
+  }
+}
+
+function finishPractice(){
+  const list = QUESTIONS[curCat];
+  const p = progress[curCat] || {best:0, attempts:0};
+  p.attempts = (p.attempts||0)+1;
+  p.best = Math.max(p.best||0, sessionCorrect);
+  p.lastScore = sessionCorrect;
+  p.total = list.length;
+  progress[curCat] = p;
+  saveProgress();
+  view = "practiceresult";
+  render();
+}
+
+function startExam(){
+  clearInterval(examTimer);
+  let all = [];
+  CATS.forEach(c=> all = all.concat(QUESTIONS[c.key]));
+  examQuestions = shuffle(all).slice(0,40);
+  examAnswers = [];
+  qIdx = 0;
+  examTimeLeft = 60*60;
+  view = "exam";
+  render();
+  examTimer = setInterval(()=>{
+    examTimeLeft--;
+    if(examTimeLeft<=0){ clearInterval(examTimer); finishExam(); return; }
+    const t = document.querySelector('.timer');
+    if(t){
+      const mins = Math.floor(examTimeLeft/60);
+      const secs = String(examTimeLeft%60).padStart(2,'0');
+      t.textContent = `⏱ ${mins}:${secs}`;
+      t.classList.toggle('low', examTimeLeft<300);
+    }
+  },1000);
+}
+
+function finishExam(){
+  clearInterval(examTimer);
+  for(let i=0;i<examQuestions.length;i++){
+    if(!examAnswers[i]) examAnswers[i] = {sel:-1, correct:false};
+  }
+  view = "examresult";
+  render();
+}
+
+// ================= INIT =================
+loadProgress();
+render();
+</script>
+</body>
+</html>
