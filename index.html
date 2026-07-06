@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Overzicht — sport, werk &amp; groei</title>
+<title>Boaz zijn persoonlijke pagina</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -14,14 +14,7 @@
     --ink-soft: #9A9587;
     --ink-contrast: #121110;
     --line: #34312B;
-    --sport: #E2664B;
-    --sport-soft: #3A241D;
-    --werk: #7C93C4;
-    --werk-soft: #232A38;
-    --groei: #93B682;
-    --groei-soft: #232B1F;
     --oldtimer: #C9A227;
-    --oldtimer-soft: #322C16;
     --shadow: 0 1px 0 rgba(0,0,0,0.4), 0 8px 24px -12px rgba(0,0,0,0.6);
   }
 
@@ -50,7 +43,7 @@
     align-items: flex-end;
     border-bottom: 2px solid var(--ink);
     padding-bottom: 18px;
-    margin-bottom: 24px;
+    margin-bottom: 40px;
     flex-wrap: wrap;
     gap: 14px;
   }
@@ -89,155 +82,45 @@
   }
   .signin-gate p { margin-bottom: 20px; font-size: 15px; }
 
-  .quick-links { display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
-  .quick-links a {
-    font-size: 13px; font-weight: 600; color: var(--ink-soft); text-decoration: none;
-    border: 1px solid var(--line); padding: 9px 16px; border-radius: 3px;
-    transition: border-color .15s, color .15s;
-  }
-  .quick-links a:hover { color: var(--ink); border-color: var(--ink-soft); }
-  .quick-links a::after { content: " ↗"; opacity: 0.5; font-size: 11px; }
-
-  .stat-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
-  .stat-chip {
-    flex: 1;
-    min-width: 140px;
+  .menu-wrap { max-width: 380px; margin: 0 auto; }
+  .main-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
     background: var(--paper-card);
+    border-radius: 6px;
     box-shadow: var(--shadow);
+    padding: 14px;
+  }
+  .nav-item {
+    display: block;
+    text-decoration: none;
+    padding: 16px 18px;
     border-radius: 4px;
-    padding: 14px 16px;
-    cursor: pointer;
-    border: 1px solid transparent;
-  }
-  .stat-chip:hover { border-color: var(--ink-soft); }
-  .stat-chip .stat-label { font-size: 13px; font-weight: 600; color: var(--ink-soft); }
-  .stat-chip .stat-num { font-family: 'Fraunces', serif; font-size: 26px; margin-top: 2px; }
-  .stat-chip[data-cat="sport"] .stat-num { color: var(--sport); }
-  .stat-chip[data-cat="werk"] .stat-num { color: var(--werk); }
-  .stat-chip[data-cat="groei"] .stat-num { color: var(--groei); }
-  .stat-chip[data-cat="oldtimer"] .stat-num { color: var(--oldtimer); }
-
-  .layout {
-    display: grid;
-    grid-template-columns: 190px 1fr;
-    gap: 0;
-    background: var(--paper-card);
-    box-shadow: var(--shadow);
-    border-radius: 4px;
-    overflow: hidden;
-    min-height: 420px;
-  }
-  .tab-rail {
-    background: #0E0D0C;
-    border-right: 1px solid var(--line);
-    padding: 18px 0;
-  }
-  .tab {
-    position: relative;
-    padding: 16px 18px 16px 22px;
     cursor: pointer;
     font-weight: 600;
     font-size: 15px;
-    color: var(--ink-soft);
-    border-left: 4px solid transparent;
-    transition: background 0.15s ease;
-    clip-path: polygon(0 0, 92% 0, 100% 50%, 92% 100%, 0 100%);
-    margin-bottom: 4px;
-  }
-  .tab .count {
-    display: block;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    font-weight: 400;
-    margin-top: 3px;
-    color: var(--ink-soft);
-    opacity: 0.7;
-  }
-  .tab.active { background: var(--paper-card); color: var(--ink); }
-  .tab[data-cat="sport"].active { border-left-color: var(--sport); }
-  .tab[data-cat="werk"].active { border-left-color: var(--werk); }
-  .tab[data-cat="groei"].active { border-left-color: var(--groei); }
-  .tab[data-cat="oldtimer"].active { border-left-color: var(--oldtimer); }
-  .tab:hover:not(.active) { background: rgba(241,237,227,0.04); }
-
-  .panel { padding: 28px 32px; }
-  .panel h2 {
-    font-family: 'Fraunces', serif;
-    font-size: 24px;
-    margin: 0 0 4px 0;
-  }
-  .panel .sub { color: var(--ink-soft); font-size: 13px; margin-bottom: 22px; }
-
-  .add-row {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 22px;
-  }
-  .add-row input {
-    flex: 1;
-    font-family: 'Inter', sans-serif;
-    font-size: 14px;
-    padding: 10px 12px;
-    border: 1px solid var(--line);
-    border-radius: 3px;
-    background: var(--paper);
     color: var(--ink);
+    border-left: 3px solid transparent;
+    transition: background 0.15s ease, border-color 0.15s ease;
   }
-  .add-row input::placeholder { color: var(--ink-soft); }
-  .add-row input:focus { outline: 2px solid var(--ink); outline-offset: 1px; }
-  .add-row button {
-    font-weight: 600;
-    font-size: 14px;
-    border: none;
-    color: var(--ink-contrast);
-    padding: 0 18px;
-    border-radius: 3px;
-    cursor: pointer;
+  .nav-item:hover { background: rgba(241,237,227,0.06); border-left-color: var(--oldtimer); }
+  .nav-item .nav-icon { margin-right: 8px; opacity: 0.85; }
+  .nav-item .nav-arrow { float: right; opacity: 0.4; font-size: 12px; font-weight: 400; }
+  .nav-item .nav-sub {
+    display: block;
+    font-weight: 400;
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    margin-top: 3px;
+    font-family: 'IBM Plex Mono', monospace;
   }
-
-  ul.todos { list-style: none; margin: 0; padding: 0; }
-  ul.todos li {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 4px;
-    border-bottom: 1px solid var(--line);
-  }
-  ul.todos li:last-child { border-bottom: none; }
-  .checkbox {
-    width: 20px; height: 20px;
-    border: 2px solid var(--ink-soft);
-    border-radius: 50%;
-    cursor: pointer;
-    flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .checkbox.checked { background: var(--ink); border-color: var(--ink); }
-  .checkbox.checked::after { content: '✓'; color: var(--ink-contrast); font-size: 12px; }
-  .todo-text { flex: 1; font-size: 15px; }
-  .todo-text.done { text-decoration: line-through; color: var(--ink-soft); }
-  .del-btn {
-    background: none; border: none; color: var(--ink-soft);
-    cursor: pointer; font-size: 13px; opacity: 0.5;
-  }
-  .del-btn:hover { opacity: 1; }
-  .empty-state { color: var(--ink-soft); font-style: italic; font-size: 14px; padding: 20px 4px; }
-
-  [data-cat="sport"] .add-row button { background: var(--sport); }
-  [data-cat="werk"] .add-row button { background: var(--werk); }
-  [data-cat="groei"] .add-row button { background: var(--groei); }
-  [data-cat="oldtimer"] .add-row button { background: var(--oldtimer); }
 
   footer.note {
-    margin-top: 24px;
+    margin-top: 40px;
     font-size: 12px;
     color: var(--ink-soft);
     text-align: center;
-  }
-
-  @media (max-width: 640px) {
-    .layout { grid-template-columns: 1fr; }
-    .tab-rail { display: flex; overflow-x: auto; padding: 10px; }
   }
 </style>
 </head>
@@ -246,8 +129,8 @@
 
   <header class="top">
     <div>
-      <div class="eyebrow">Overzicht</div>
-      <div class="brand">Sport, werk &amp; groei<span> — jouw taken op één plek</span></div>
+      <div class="eyebrow">Persoonlijke pagina</div>
+      <div class="brand">Boaz zijn persoonlijke pagina<span> — alle taken op één plek</span></div>
     </div>
     <div class="auth-area" id="auth-area">
       <button class="google-btn" id="signin-btn">Inloggen met Google</button>
@@ -256,39 +139,36 @@
 
   <div id="signed-out-view">
     <div class="signin-gate">
-      <p>Log in met Google om je taken te beheren.</p>
+      <p>Log in met Google om je overzicht te zien.</p>
       <a href="vaarbewijs.html" target="_blank" rel="noopener" class="google-btn" style="text-decoration:none; display:inline-block;">Open Vaarbewijs 1 trainer</a>
     </div>
   </div>
 
   <div id="app-shell" style="display:none;">
-
-    <nav class="quick-links">
-      <a href="agenda.html" target="_blank" rel="noopener">Agenda</a>
-      <a href="notities.html" target="_blank" rel="noopener">Snelle notities</a>
-      <a href="vaarbewijs.html" target="_blank" rel="noopener">Vaarbewijs 1</a>
-    </nav>
-
-    <div class="stat-row" id="stat-row"></div>
-
-    <div class="layout" data-cat="sport">
-      <div class="tab-rail">
-        <div class="tab active" data-cat="sport">Sport<span class="count" data-count="sport">0 open</span></div>
-        <div class="tab" data-cat="werk">Werk<span class="count" data-count="werk">0 open</span></div>
-        <div class="tab" data-cat="groei">Persoonlijke groei<span class="count" data-count="groei">0 open</span></div>
-        <div class="tab" data-cat="oldtimer">Peugeot 404<span class="count" data-count="oldtimer">0 open</span></div>
-      </div>
-      <div class="panel">
-        <h2 id="panel-title">Sport</h2>
-        <div class="sub">Voeg iets toe en werk het rustig af.</div>
-        <div class="add-row">
-          <input type="text" id="new-todo-input" placeholder="Nieuw taakje..." />
-          <button id="add-todo-btn">Toevoegen</button>
-        </div>
-        <ul class="todos" id="todo-list"></ul>
-      </div>
+    <div class="menu-wrap">
+      <nav class="main-nav">
+        <a class="nav-item" href="agenda.html" target="_blank" rel="noopener">
+          <span class="nav-arrow">↗</span>
+          <span class="nav-icon">☼</span>Welkom
+          <span class="nav-sub">agenda &amp; overzicht</span>
+        </a>
+        <a class="nav-item" href="todos.html" target="_blank" rel="noopener">
+          <span class="nav-arrow">↗</span>
+          <span class="nav-icon">☑</span>To-do lijsten
+          <span class="nav-sub">sport · werk · groei · 404</span>
+        </a>
+        <a class="nav-item" href="notities.html" target="_blank" rel="noopener">
+          <span class="nav-arrow">↗</span>
+          <span class="nav-icon">✎</span>Snelle notities
+          <span class="nav-sub">losse ideeën</span>
+        </a>
+        <a class="nav-item" href="vaarbewijs.html" target="_blank" rel="noopener">
+          <span class="nav-arrow">↗</span>
+          <span class="nav-icon">⚓</span>Vaarbewijs 1
+          <span class="nav-sub">theorie trainer</span>
+        </a>
+      </nav>
     </div>
-
   </div>
 
   <footer class="note">Jouw gegevens staan veilig in jouw eigen Firebase-omgeving — niemand anders heeft toegang.</footer>
@@ -299,10 +179,6 @@
   import {
     getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import {
-    getFirestore, collection, addDoc, onSnapshot, updateDoc, deleteDoc,
-    doc, query, where, serverTimestamp
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBmmkxzxJIiQQh4oAPKV9tv_dPkvHa9w_Q",
@@ -316,20 +192,8 @@
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
-  const db = getFirestore(app);
-
-  const CATEGORIES = {
-    sport: "Sport",
-    werk: "Werk",
-    groei: "Persoonlijke groei",
-    oldtimer: "Peugeot 404"
-  };
 
   let currentUser = null;
-  let currentCat = "sport";
-  let allTodos = [];
-  let unsubscribeTodos = null;
-  let todosLayoutInitialized = false;
 
   async function handleSignIn() {
     const provider = new GoogleAuthProvider();
@@ -348,12 +212,9 @@
     if (user) {
       document.getElementById('signed-out-view').style.display = 'none';
       document.getElementById('app-shell').style.display = 'block';
-      initTodosLayout();
-      subscribeTodos();
     } else {
       document.getElementById('signed-out-view').style.display = 'block';
       document.getElementById('app-shell').style.display = 'none';
-      if (unsubscribeTodos) unsubscribeTodos();
     }
   });
 
@@ -371,116 +232,6 @@
       area.innerHTML = `<button class="google-btn" id="signin-btn">Inloggen met Google</button>`;
       document.getElementById('signin-btn').addEventListener('click', handleSignIn);
     }
-  }
-
-  function initTodosLayout() {
-    if (todosLayoutInitialized) return;
-    todosLayoutInitialized = true;
-
-    document.querySelectorAll('.tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        currentCat = tab.dataset.cat;
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        document.querySelector('.layout').dataset.cat = currentCat;
-        document.getElementById('panel-title').textContent = CATEGORIES[currentCat];
-        renderTodoList();
-      });
-    });
-
-    document.getElementById('add-todo-btn').addEventListener('click', addTodo);
-    document.getElementById('new-todo-input').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') addTodo();
-    });
-  }
-
-  function subscribeTodos() {
-    if (unsubscribeTodos) unsubscribeTodos();
-    const q = query(collection(db, 'todos'), where('uid', '==', currentUser.uid));
-    unsubscribeTodos = onSnapshot(q, (snapshot) => {
-      allTodos = [];
-      snapshot.forEach(docSnap => allTodos.push({ id: docSnap.id, ...docSnap.data() }));
-      allTodos.sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
-      updateCounts();
-      renderTodoList();
-      renderStatRow();
-    });
-  }
-
-  function updateCounts() {
-    Object.keys(CATEGORIES).forEach(cat => {
-      const open = allTodos.filter(t => t.category === cat && !t.done).length;
-      const el = document.querySelector(`[data-count="${cat}"]`);
-      if (el) el.textContent = `${open} open`;
-    });
-  }
-
-  function renderStatRow() {
-    const row = document.getElementById('stat-row');
-    row.innerHTML = Object.entries(CATEGORIES).map(([cat, label]) => {
-      const open = allTodos.filter(t => t.category === cat && !t.done).length;
-      return `<div class="stat-chip" data-cat="${cat}"><div class="stat-label">${label}</div><div class="stat-num">${open}</div></div>`;
-    }).join('');
-    row.querySelectorAll('.stat-chip').forEach(chip => {
-      chip.addEventListener('click', () => {
-        const tab = document.querySelector(`.tab[data-cat="${chip.dataset.cat}"]`);
-        if (tab) tab.click();
-      });
-    });
-  }
-
-  function renderTodoList() {
-    const listEl = document.getElementById('todo-list');
-    if (!listEl) return;
-    const items = allTodos.filter(t => t.category === currentCat);
-    if (!items.length) {
-      listEl.innerHTML = '<div class="empty-state">Nog niets hier. Voeg je eerste taak toe.</div>';
-      return;
-    }
-    listEl.innerHTML = items.map(item => `
-      <li>
-        <div class="checkbox ${item.done ? 'checked' : ''}" data-id="${item.id}"></div>
-        <div class="todo-text ${item.done ? 'done' : ''}">${escapeHtml(item.text)}</div>
-        <button class="del-btn" data-id="${item.id}">verwijderen</button>
-      </li>
-    `).join('');
-
-    listEl.querySelectorAll('.checkbox').forEach(cb => {
-      cb.addEventListener('click', () => toggleDone(cb.dataset.id));
-    });
-    listEl.querySelectorAll('.del-btn').forEach(btn => {
-      btn.addEventListener('click', () => deleteTodo(btn.dataset.id));
-    });
-  }
-
-  async function addTodo() {
-    const input = document.getElementById('new-todo-input');
-    const text = input.value.trim();
-    if (!text) return;
-    input.value = '';
-    await addDoc(collection(db, 'todos'), {
-      uid: currentUser.uid,
-      category: currentCat,
-      text,
-      done: false,
-      createdAt: serverTimestamp()
-    });
-  }
-
-  async function toggleDone(id) {
-    const item = allTodos.find(t => t.id === id);
-    if (!item) return;
-    await updateDoc(doc(db, 'todos', id), { done: !item.done });
-  }
-
-  async function deleteTodo(id) {
-    await deleteDoc(doc(db, 'todos', id));
-  }
-
-  function escapeHtml(str) {
-    return str.replace(/[&<>"']/g, m => ({
-      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-    }[m]));
   }
 </script>
 </body>
