@@ -296,6 +296,16 @@
     color: var(--ink);
   }
   .add-row input[type="number"] { flex: 0 0 130px; }
+  .add-row select {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background: var(--paper);
+    color: var(--ink);
+    flex: 0 0 160px;
+  }
   .add-row input::placeholder { color: var(--ink-soft); }
   .add-row input:focus { outline: 2px solid var(--ink); outline-offset: 1px; }
   .add-row button {
@@ -318,6 +328,16 @@
     border-bottom: 1px solid var(--line);
   }
   ul.todos li:last-child, ul.notes-list li:last-child { border-bottom: none; }
+  ul.todos li.subcat-header {
+    display: block; padding: 16px 4px 6px; border-bottom: none;
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.05em;
+    text-transform: uppercase; color: var(--oldtimer);
+  }
+  ul.todos li.subcat-header:first-child { padding-top: 0; }
+  ul.todos li.subcat-empty {
+    display: block; padding: 0 4px 12px; border-bottom: none;
+    color: var(--ink-soft); font-style: italic; font-size: 13px;
+  }
   ul.todos li.dragging { opacity: 0.4; }
   ul.todos li.drag-over { border-top: 2px solid var(--ink); }
   .drag-handle {
@@ -491,9 +511,11 @@
   let allTodos = [];
   let allNotes = [];
   let customCategories = [];
+  let allSubcategories = [];
   let unsubscribeTodos = null;
   let unsubscribeNotes = null;
   let unsubscribeCategories = null;
+  let unsubscribeSubcategories = null;
   let todosLayoutInitialized = false;
   let editingNoteId = null;
   let editingTodoId = null;
@@ -529,6 +551,7 @@
       document.getElementById('welcome-greeting').textContent = firstName ? `Welkom terug, ${firstName}` : 'Welkom terug';
       initTodosLayout();
       subscribeCategories();
+      subscribeSubcategories();
       subscribeTodos();
       subscribeNotes();
       subscribeHidden();
@@ -541,6 +564,7 @@
       if (unsubscribeNotes) unsubscribeNotes();
       if (unsubscribeHidden) unsubscribeHidden();
       if (unsubscribeCategories) unsubscribeCategories();
+      if (unsubscribeSubcategories) unsubscribeSubcategories();
     }
   });
 
@@ -914,6 +938,46 @@
     })();
   }
 
+  // ---------- Subcategorieën (binnen een to-do lijst) ----------
+  function subscribeSubcategories() {
+    if (unsubscribeSubcategories) unsubscribeSubcategories();
+    const q = query(collection(db, 'subcategories'), where('uid', '==', currentUser.uid));
+    unsubscribeSubcategories = onSnapshot(q, (snapshot) => {
+      allSubcategories = [];
+      snapshot.forEach(docSnap => allSubcategories.push({ id: docSnap.id, ...docSnap.data() }));
+      allSubcategories.sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
+      const cat = getCategoryDef(currentCat);
+      if (cat && cat.type !== 'finance') renderPanel();
+    }, (err) => {
+      console.error(err);
+    });
+  }
+
+  function getSubcategoriesForList(listId) {
+    return allSubcategories.filter(s => s.listId === listId);
+  }
+
+  async function addSubcategory() {
+    const name = prompt('Naam van de subcategorie:');
+    if (!name || !name.trim()) return;
+    const tempId = 'temp_' + Date.now();
+    allSubcategories.push({ id: tempId, uid: currentUser.uid, listId: currentCat, name: name.trim() });
+    renderPanel();
+    try {
+      await addDoc(collection(db, 'subcategories'), {
+        uid: currentUser.uid,
+        listId: currentCat,
+        name: name.trim(),
+        createdAt: serverTimestamp()
+      });
+    } catch (e) {
+      console.error(e);
+      allSubcategories = allSubcategories.filter(s => s.id !== tempId);
+      renderPanel();
+      alert('Subcategorie aanmaken is mislukt: ' + (e.code || e.message || e) + '\n\nControleer of de Firestore-beveiligingsregels schrijven naar de collectie "subcategories" toestaan.');
+    }
+  }
+
   function refreshCurrentPanelList() {
     const cat = getCategoryDef(currentCat);
     if (!cat) return;
@@ -981,17 +1045,26 @@
       document.getElementById('new-finance-amount').addEventListener('keydown', (e) => { if (e.key === 'Enter') addFinanceEntry(); });
       renderFinanceList();
     } else {
+      const subcats = getSubcategoriesForList(cat.id);
       panel.innerHTML = `
         ${titleRow}
-        <div class="sub">Voeg iets toe en werk het rustig af.</div>
+        <div class="sub">Voeg iets toe en werk het rustig af.
+          <button class="hidden-toggle" id="add-subcat-btn" style="margin-top:0; margin-left:6px;">+ subcategorie toevoegen</button>
+        </div>
         <div class="add-row">
           <input type="text" id="new-todo-input" placeholder="Nieuw taakje..." />
+          ${subcats.length ? `
+            <select id="new-todo-subcat">
+              <option value="">Overig</option>
+              ${subcats.map(sc => `<option value="${sc.id}">${escapeHtml(sc.name)}</option>`).join('')}
+            </select>` : ''}
           <button id="add-todo-btn">Toevoegen</button>
         </div>
         <ul class="todos" id="todo-list"></ul>
       `;
       document.getElementById('add-todo-btn').addEventListener('click', addTodo);
       document.getElementById('new-todo-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') addTodo(); });
+      document.getElementById('add-subcat-btn').addEventListener('click', addSubcategory);
       renderTodoList();
     }
     document.getElementById('rename-cat-btn').addEventListener('click', () => startRenameCategory(cat));
@@ -1032,15 +1105,8 @@
     });
   }
 
-  function renderTodoList() {
-    const listEl = document.getElementById('todo-list');
-    if (!listEl) return;
-    const items = allTodos.filter(t => t.category === currentCat);
-    if (!items.length) {
-      listEl.innerHTML = '<div class="empty-state">Nog niets hier. Voeg je eerste taak toe.</div>';
-      return;
-    }
-    listEl.innerHTML = items.map(item => {
+  function renderTodoItemsHtml(items) {
+    return items.map(item => {
       if (editingTodoId === item.id) {
         return `
           <li data-id="${item.id}">
@@ -1057,6 +1123,36 @@
         <button class="del-btn" data-id="${item.id}">verwijderen</button>
       </li>`;
     }).join('');
+  }
+
+  function renderTodoList() {
+    const listEl = document.getElementById('todo-list');
+    if (!listEl) return;
+    const items = allTodos.filter(t => t.category === currentCat);
+    const subcats = getSubcategoriesForList(currentCat);
+
+    if (!items.length && !subcats.length) {
+      listEl.innerHTML = '<div class="empty-state">Nog niets hier. Voeg je eerste taak toe.</div>';
+      return;
+    }
+
+    if (!subcats.length) {
+      listEl.innerHTML = renderTodoItemsHtml(items);
+    } else {
+      const subcatIds = new Set(subcats.map(s => s.id));
+      let html = subcats.map(sc => {
+        const groupItems = items.filter(i => i.subcategory === sc.id);
+        return `
+          <li class="subcat-header">${escapeHtml(sc.name)}</li>
+          ${groupItems.length ? renderTodoItemsHtml(groupItems) : '<li class="subcat-empty">Nog niets hier</li>'}
+        `;
+      }).join('');
+      const uncategorized = items.filter(i => !subcatIds.has(i.subcategory));
+      if (uncategorized.length) {
+        html += `<li class="subcat-header">Overig</li>${renderTodoItemsHtml(uncategorized)}`;
+      }
+      listEl.innerHTML = html;
+    }
 
     listEl.querySelectorAll('.checkbox').forEach(cb => {
       cb.addEventListener('click', () => toggleDone(cb.dataset.id));
@@ -1096,6 +1192,9 @@
         li.classList.remove('drag-over');
         const targetId = li.dataset.id;
         if (!draggedId || draggedId === targetId) return;
+        const draggedItem = allTodos.find(t => t.id === draggedId);
+        const targetItem = allTodos.find(t => t.id === targetId);
+        if (draggedItem && targetItem && (draggedItem.subcategory || '') !== (targetItem.subcategory || '')) return;
         reorderTodos(draggedId, targetId);
       });
     });
@@ -1192,12 +1291,14 @@
 
   async function addTodo() {
     const input = document.getElementById('new-todo-input');
+    const subcatSelect = document.getElementById('new-todo-subcat');
     const text = input.value.trim();
     if (!text) return;
     input.value = '';
     await addDoc(collection(db, 'todos'), {
       uid: currentUser.uid,
       category: currentCat,
+      subcategory: subcatSelect ? subcatSelect.value : '',
       text,
       done: false,
       createdAt: serverTimestamp()
