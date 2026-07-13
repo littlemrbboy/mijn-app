@@ -165,6 +165,7 @@
     font-size: 13px; opacity: 0.5; padding: 2px 4px; flex-shrink: 0;
   }
   .edit-icon:hover, .edit-icon.active { opacity: 1; color: var(--ink); }
+  .edit-icon.danger:hover { color: var(--sport); }
   .empty-agenda { font-size: 13px; color: var(--ink-soft); font-style: italic; }
   .ticket-actions { display:none; gap:10px; margin-top:8px; flex-wrap:wrap; }
   .ticket-actions.open { display:flex; }
@@ -495,6 +496,7 @@
   let unsubscribeCategories = null;
   let todosLayoutInitialized = false;
   let editingNoteId = null;
+  let editingTodoId = null;
 
   const todayDateEl = document.getElementById('today-date');
   todayDateEl.textContent = new Date().toLocaleDateString('nl-NL', {
@@ -750,7 +752,12 @@
   let categoryOverrides = {};
 
   function getAllCategories() {
-    const defaults = DEFAULT_CATEGORIES.map(c => ({ ...c, name: categoryOverrides[c.id] || c.name }));
+    const defaults = DEFAULT_CATEGORIES
+      .map(c => {
+        const o = categoryOverrides[c.id] || {};
+        return { ...c, name: o.name || c.name, hidden: !!o.hidden };
+      })
+      .filter(c => !c.hidden);
     return [...defaults, ...customCategories];
   }
 
@@ -780,15 +787,19 @@
       snapshot.forEach(docSnap => {
         const data = docSnap.data();
         if (defaultIds.has(docSnap.id)) {
-          categoryOverrides[docSnap.id] = data.name;
+          categoryOverrides[docSnap.id] = { name: data.name, hidden: !!data.hidden };
         } else {
           customCategories.push({ id: docSnap.id, type: 'checklist', ...data });
         }
       });
       customCategories.sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
+      if (!getCategoryDef(currentCat)) {
+        const all = getAllCategories();
+        if (all.length) { selectCategory(all[0].id); return; }
+      }
       renderTabs();
       renderStatRow();
-      if (getCategoryDef(currentCat)) refreshPanelTitle();
+      refreshPanelTitle();
     }, (err) => {
       console.error(err);
     });
@@ -824,6 +835,7 @@
 
   function selectCategory(catId) {
     currentCat = catId;
+    editingTodoId = null;
     document.querySelector('.layout').dataset.cat = currentCat;
     renderTabs();
     renderPanel();
@@ -855,7 +867,7 @@
     if (!newName) return;
     const isDefault = DEFAULT_CATEGORIES.some(c => c.id === catId);
     if (isDefault) {
-      categoryOverrides[catId] = newName;
+      categoryOverrides[catId] = { ...(categoryOverrides[catId] || {}), name: newName };
     } else {
       const cc = customCategories.find(c => c.id === catId);
       if (cc) cc.name = newName;
@@ -864,6 +876,42 @@
     renderPanel();
     renderStatRow();
     renameCategory(catId, newName);
+  }
+
+  function deleteCategoryList(cat) {
+    const msg = `Weet je zeker dat je de lijst "${cat.name}" wilt verwijderen? Alle items hierin worden ook verwijderd. Dit kan niet ongedaan gemaakt worden.`;
+    if (!confirm(msg)) return;
+
+    const itemIdsToDelete = allTodos.filter(t => t.category === cat.id).map(t => t.id);
+    const isDefault = DEFAULT_CATEGORIES.some(c => c.id === cat.id);
+
+    allTodos = allTodos.filter(t => t.category !== cat.id);
+    if (isDefault) {
+      categoryOverrides[cat.id] = { ...(categoryOverrides[cat.id] || {}), hidden: true };
+    } else {
+      customCategories = customCategories.filter(c => c.id !== cat.id);
+    }
+    if (currentCat === cat.id) {
+      const remaining = getAllCategories();
+      currentCat = remaining.length ? remaining[0].id : 'sport';
+    }
+    renderTabs();
+    renderPanel();
+    renderStatRow();
+
+    (async () => {
+      try {
+        await Promise.all(itemIdsToDelete.map(id => deleteDoc(doc(db, 'todos', id))));
+        if (isDefault) {
+          await setDoc(doc(db, 'categories', cat.id), { uid: currentUser.uid, hidden: true }, { merge: true });
+        } else {
+          await deleteDoc(doc(db, 'categories', cat.id));
+        }
+      } catch (e) {
+        console.error(e);
+        alert('Lijst verwijderen is mislukt: ' + (e.code || e.message || e) + '\n\nControleer of de Firestore-beveiligingsregels schrijven naar de collectie "categories" toestaan.');
+      }
+    })();
   }
 
   function refreshCurrentPanelList() {
@@ -913,6 +961,7 @@
       <div class="panel-title-row" id="panel-title-row">
         <h2 id="panel-h2">${escapeHtml(cat.name)}</h2>
         <button class="edit-icon" id="rename-cat-btn" title="Naam bewerken">✎</button>
+        <button class="edit-icon danger" id="delete-cat-btn" title="Lijst verwijderen">✕</button>
       </div>`;
 
     if (cat.type === 'finance') {
@@ -946,6 +995,7 @@
       renderTodoList();
     }
     document.getElementById('rename-cat-btn').addEventListener('click', () => startRenameCategory(cat));
+    document.getElementById('delete-cat-btn').addEventListener('click', () => deleteCategoryList(cat));
   }
 
   function subscribeTodos() {
@@ -990,24 +1040,44 @@
       listEl.innerHTML = '<div class="empty-state">Nog niets hier. Voeg je eerste taak toe.</div>';
       return;
     }
-    listEl.innerHTML = items.map(item => `
+    listEl.innerHTML = items.map(item => {
+      if (editingTodoId === item.id) {
+        return `
+          <li data-id="${item.id}">
+            <input type="text" class="edit-note-input edit-todo-input" data-id="${item.id}" value="${escapeHtml(item.text)}" />
+            <button class="del-btn" data-save-todo="${item.id}">opslaan</button>
+          </li>`;
+      }
+      return `
       <li draggable="true" data-id="${item.id}">
         <span class="drag-handle" title="Sleep om te herschikken">⋮⋮</span>
         <div class="checkbox ${item.done ? 'checked' : ''}" data-id="${item.id}"></div>
         <div class="todo-text ${item.done ? 'done' : ''}">${escapeHtml(item.text)}</div>
+        <button class="edit-note-btn" data-edit-todo="${item.id}" title="Bewerken">✎</button>
         <button class="del-btn" data-id="${item.id}">verwijderen</button>
-      </li>
-    `).join('');
+      </li>`;
+    }).join('');
 
     listEl.querySelectorAll('.checkbox').forEach(cb => {
       cb.addEventListener('click', () => toggleDone(cb.dataset.id));
     });
-    listEl.querySelectorAll('.del-btn').forEach(btn => {
+    listEl.querySelectorAll('.del-btn[data-id]').forEach(btn => {
       btn.addEventListener('click', () => deleteTodo(btn.dataset.id));
+    });
+    listEl.querySelectorAll('[data-edit-todo]').forEach(btn => {
+      btn.addEventListener('click', () => { editingTodoId = btn.dataset.editTodo; renderTodoList(); });
+    });
+    listEl.querySelectorAll('[data-save-todo]').forEach(btn => {
+      btn.addEventListener('click', () => saveTodoEdit(btn.dataset.saveTodo));
+    });
+    listEl.querySelectorAll('.edit-todo-input').forEach(input => {
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveTodoEdit(input.dataset.id); });
+      input.focus();
+      input.setSelectionRange(input.value.length, input.value.length);
     });
 
     let draggedId = null;
-    listEl.querySelectorAll('li').forEach(li => {
+    listEl.querySelectorAll('li[draggable="true"]').forEach(li => {
       li.addEventListener('dragstart', () => {
         draggedId = li.dataset.id;
         li.classList.add('dragging');
@@ -1031,6 +1101,20 @@
     });
   }
 
+  function saveTodoEdit(id) {
+    const input = document.querySelector(`.edit-todo-input[data-id="${id}"]`);
+    const text = input.value.trim();
+    if (!text) return;
+    editingTodoId = null;
+    const item = allTodos.find(t => t.id === id);
+    if (item) item.text = text;
+    renderTodoList();
+    updateDoc(doc(db, 'todos', id), { text }).catch(e => {
+      console.error(e);
+      alert('Opslaan is mislukt: ' + (e.code || e.message || e));
+    });
+  }
+
   function renderFinanceList() {
     const listEl = document.getElementById('todo-list');
     if (!listEl) return;
@@ -1041,15 +1125,57 @@
       listEl.innerHTML = '<div class="empty-state">Nog niets hier. Voeg de eerste kostenpost toe.</div>';
       return;
     }
-    listEl.innerHTML = items.map(item => `
+    listEl.innerHTML = items.map(item => {
+      if (editingTodoId === item.id) {
+        return `
+          <li data-id="${item.id}">
+            <input type="text" class="edit-note-input edit-finance-note" data-id="${item.id}" value="${escapeHtml(item.text)}" />
+            <input type="number" class="edit-note-input edit-finance-amount" data-id="${item.id}" value="${item.amount}" step="0.01" style="flex:0 0 110px;" />
+            <button class="del-btn" data-save-finance="${item.id}">opslaan</button>
+          </li>`;
+      }
+      return `
       <li data-id="${item.id}">
         <div class="todo-text">${escapeHtml(item.text)}</div>
         <span class="finance-amount">${formatEuro(Number(item.amount) || 0)}</span>
+        <button class="edit-note-btn" data-edit-finance="${item.id}" title="Bewerken">✎</button>
         <button class="del-btn" data-id="${item.id}">verwijderen</button>
-      </li>
-    `).join('');
-    listEl.querySelectorAll('.del-btn').forEach(btn => {
+      </li>`;
+    }).join('');
+    listEl.querySelectorAll('.del-btn[data-id]').forEach(btn => {
       btn.addEventListener('click', () => deleteTodo(btn.dataset.id));
+    });
+    listEl.querySelectorAll('[data-edit-finance]').forEach(btn => {
+      btn.addEventListener('click', () => { editingTodoId = btn.dataset.editFinance; renderFinanceList(); });
+    });
+    listEl.querySelectorAll('[data-save-finance]').forEach(btn => {
+      btn.addEventListener('click', () => saveFinanceEdit(btn.dataset.saveFinance));
+    });
+    listEl.querySelectorAll('.edit-finance-note, .edit-finance-amount').forEach(input => {
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveFinanceEdit(input.dataset.id); });
+    });
+    const firstEditInput = listEl.querySelector('.edit-finance-note');
+    if (firstEditInput) {
+      firstEditInput.focus();
+      firstEditInput.setSelectionRange(firstEditInput.value.length, firstEditInput.value.length);
+    }
+  }
+
+  function saveFinanceEdit(id) {
+    const noteInput = document.querySelector(`.edit-finance-note[data-id="${id}"]`);
+    const amountInput = document.querySelector(`.edit-finance-amount[data-id="${id}"]`);
+    const text = noteInput.value.trim();
+    const amount = parseFloat(amountInput.value);
+    if (!text || isNaN(amount)) return;
+    editingTodoId = null;
+    const item = allTodos.find(t => t.id === id);
+    if (item) { item.text = text; item.amount = amount; }
+    renderFinanceList();
+    renderTabs();
+    renderStatRow();
+    updateDoc(doc(db, 'todos', id), { text, amount }).catch(e => {
+      console.error(e);
+      alert('Opslaan is mislukt: ' + (e.code || e.message || e));
     });
   }
 
