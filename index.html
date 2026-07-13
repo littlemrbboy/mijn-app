@@ -329,11 +329,14 @@
   }
   ul.todos li:last-child, ul.notes-list li:last-child { border-bottom: none; }
   ul.todos li.subcat-header {
-    display: block; padding: 16px 4px 6px; border-bottom: none;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 4px 6px; border-bottom: none;
     font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.05em;
     text-transform: uppercase; color: var(--oldtimer);
   }
   ul.todos li.subcat-header:first-child { padding-top: 0; }
+  ul.todos li.subcat-header.drag-over,
+  ul.todos li.subcat-empty.drag-over { border-top: 2px solid var(--ink); }
   ul.todos li.subcat-empty {
     display: block; padding: 0 4px 12px; border-bottom: none;
     color: var(--ink-soft); font-style: italic; font-size: 13px;
@@ -1143,14 +1146,16 @@
       let html = subcats.map(sc => {
         const groupItems = items.filter(i => i.subcategory === sc.id);
         return `
-          <li class="subcat-header">${escapeHtml(sc.name)}</li>
-          ${groupItems.length ? renderTodoItemsHtml(groupItems) : '<li class="subcat-empty">Nog niets hier</li>'}
+          <li class="subcat-header" data-subcat-target="${sc.id}">
+            <span>${escapeHtml(sc.name)}</span>
+            <button class="edit-icon danger" data-delete-subcat="${sc.id}" title="Subcategorie verwijderen">✕</button>
+          </li>
+          ${groupItems.length ? renderTodoItemsHtml(groupItems) : `<li class="subcat-empty" data-subcat-target="${sc.id}">Nog niets hier — sleep taken hierheen</li>`}
         `;
       }).join('');
       const uncategorized = items.filter(i => !subcatIds.has(i.subcategory));
-      if (uncategorized.length) {
-        html += `<li class="subcat-header">Overig</li>${renderTodoItemsHtml(uncategorized)}`;
-      }
+      html += `<li class="subcat-header" data-subcat-target=""><span>Overig</span></li>`;
+      html += uncategorized.length ? renderTodoItemsHtml(uncategorized) : `<li class="subcat-empty" data-subcat-target="">Sleep taken hierheen</li>`;
       listEl.innerHTML = html;
     }
 
@@ -1170,6 +1175,13 @@
       input.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveTodoEdit(input.dataset.id); });
       input.focus();
       input.setSelectionRange(input.value.length, input.value.length);
+    });
+    listEl.querySelectorAll('[data-delete-subcat]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const subcat = subcats.find(s => s.id === btn.dataset.deleteSubcat);
+        if (subcat) deleteSubcategoryGroup(subcat);
+      });
     });
 
     let draggedId = null;
@@ -1192,12 +1204,83 @@
         li.classList.remove('drag-over');
         const targetId = li.dataset.id;
         if (!draggedId || draggedId === targetId) return;
-        const draggedItem = allTodos.find(t => t.id === draggedId);
-        const targetItem = allTodos.find(t => t.id === targetId);
-        if (draggedItem && targetItem && (draggedItem.subcategory || '') !== (targetItem.subcategory || '')) return;
-        reorderTodos(draggedId, targetId);
+        moveTodoTo(draggedId, targetId);
       });
     });
+
+    listEl.querySelectorAll('[data-subcat-target]').forEach(target => {
+      target.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        target.classList.add('drag-over');
+      });
+      target.addEventListener('dragleave', () => target.classList.remove('drag-over'));
+      target.addEventListener('drop', (e) => {
+        e.preventDefault();
+        target.classList.remove('drag-over');
+        if (!draggedId) return;
+        moveTodoToSubcat(draggedId, target.dataset.subcatTarget);
+      });
+    });
+  }
+
+  function moveTodoTo(draggedId, targetId) {
+    const items = allTodos.filter(t => t.category === currentCat);
+    const fromIdx = items.findIndex(t => t.id === draggedId);
+    const toIdx = items.findIndex(t => t.id === targetId);
+    if (fromIdx === -1 || toIdx === -1) return;
+    const draggedItem = items[fromIdx];
+    const targetItem = items[toIdx];
+    const newSubcat = targetItem.subcategory || '';
+    const subcatChanged = (draggedItem.subcategory || '') !== newSubcat;
+    draggedItem.subcategory = newSubcat;
+
+    const reordered = items.slice();
+    const [moved] = reordered.splice(fromIdx, 1);
+    const newIdx = reordered.findIndex(t => t.id === targetId);
+    reordered.splice(newIdx, 0, moved);
+    reordered.forEach((item, idx) => { item.order = idx; });
+
+    renderTodoList();
+    renderTabs();
+    renderStatRow();
+
+    const writes = reordered.map((item, idx) => updateDoc(doc(db, 'todos', item.id), { order: idx }));
+    if (subcatChanged) writes.push(updateDoc(doc(db, 'todos', draggedId), { subcategory: newSubcat }));
+    Promise.all(writes).catch(e => {
+      console.error(e);
+      alert('Verplaatsen is mislukt: ' + (e.code || e.message || e));
+    });
+  }
+
+  function moveTodoToSubcat(draggedId, subcatId) {
+    const item = allTodos.find(t => t.id === draggedId);
+    if (!item) return;
+    item.subcategory = subcatId;
+    renderTodoList();
+    updateDoc(doc(db, 'todos', draggedId), { subcategory: subcatId }).catch(e => {
+      console.error(e);
+      alert('Verplaatsen is mislukt: ' + (e.code || e.message || e));
+    });
+  }
+
+  function deleteSubcategoryGroup(subcat) {
+    const msg = `Weet je zeker dat je de subcategorie "${subcat.name}" wilt verwijderen? Taken hierin gaan naar "Overig".`;
+    if (!confirm(msg)) return;
+
+    const affectedIds = allTodos.filter(t => t.category === subcat.listId && t.subcategory === subcat.id).map(t => t.id);
+    allTodos.forEach(t => { if (affectedIds.includes(t.id)) t.subcategory = ''; });
+    allSubcategories = allSubcategories.filter(s => s.id !== subcat.id);
+    renderPanel();
+
+    (async () => {
+      try {
+        await Promise.all(affectedIds.map(id => updateDoc(doc(db, 'todos', id), { subcategory: '' })));
+        await deleteDoc(doc(db, 'subcategories', subcat.id));
+      } catch (e) {
+        console.error(e);
+        alert('Subcategorie verwijderen is mislukt: ' + (e.code || e.message || e));
+      }
+    })();
   }
 
   function saveTodoEdit(id) {
@@ -1276,17 +1359,6 @@
       console.error(e);
       alert('Opslaan is mislukt: ' + (e.code || e.message || e));
     });
-  }
-
-  async function reorderTodos(draggedId, targetId) {
-    const items = allTodos.filter(t => t.category === currentCat);
-    const fromIdx = items.findIndex(t => t.id === draggedId);
-    const toIdx = items.findIndex(t => t.id === targetId);
-    if (fromIdx === -1 || toIdx === -1) return;
-    const reordered = items.slice();
-    const [moved] = reordered.splice(fromIdx, 1);
-    reordered.splice(toIdx, 0, moved);
-    await Promise.all(reordered.map((item, idx) => updateDoc(doc(db, 'todos', item.id), { order: idx })));
   }
 
   async function addTodo() {
