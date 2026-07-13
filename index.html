@@ -259,10 +259,14 @@
   .tab.tab-add:hover { color: var(--ink); opacity: 1; background: rgba(241,237,227,0.04); }
 
   .panel { padding: 28px 32px; }
+  .panel-title-row { display: flex; align-items: center; gap: 8px; margin: 0 0 4px 0; }
+  .panel-title-row .edit-note-input {
+    font-family: 'Fraunces', serif; font-size: 20px; padding: 6px 10px;
+  }
   .panel h2 {
     font-family: 'Fraunces', serif;
     font-size: 24px;
-    margin: 0 0 4px 0;
+    margin: 0;
   }
   .panel .sub { color: var(--ink-soft); font-size: 13px; margin-bottom: 22px; }
 
@@ -454,7 +458,7 @@
     getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import {
-    getFirestore, collection, addDoc, onSnapshot, updateDoc, deleteDoc,
+    getFirestore, collection, addDoc, onSnapshot, updateDoc, deleteDoc, setDoc,
     doc, query, where, serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -743,8 +747,11 @@
   }
 
   // ---------- To-do lijsten (categorieën) ----------
+  let categoryOverrides = {};
+
   function getAllCategories() {
-    return [...DEFAULT_CATEGORIES, ...customCategories];
+    const defaults = DEFAULT_CATEGORIES.map(c => ({ ...c, name: categoryOverrides[c.id] || c.name }));
+    return [...defaults, ...customCategories];
   }
 
   function getCategoryDef(catId) {
@@ -766,24 +773,53 @@
   function subscribeCategories() {
     if (unsubscribeCategories) unsubscribeCategories();
     const q = query(collection(db, 'categories'), where('uid', '==', currentUser.uid));
+    const defaultIds = new Set(DEFAULT_CATEGORIES.map(c => c.id));
     unsubscribeCategories = onSnapshot(q, (snapshot) => {
+      categoryOverrides = {};
       customCategories = [];
-      snapshot.forEach(docSnap => customCategories.push({ id: docSnap.id, type: 'checklist', ...docSnap.data() }));
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        if (defaultIds.has(docSnap.id)) {
+          categoryOverrides[docSnap.id] = data.name;
+        } else {
+          customCategories.push({ id: docSnap.id, type: 'checklist', ...data });
+        }
+      });
       customCategories.sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
       renderTabs();
       renderStatRow();
+      if (getCategoryDef(currentCat)) refreshPanelTitle();
+    }, (err) => {
+      console.error(err);
     });
   }
 
   async function createNewList() {
     const name = prompt('Naam van de nieuwe lijst:');
     if (!name || !name.trim()) return;
-    const docRef = await addDoc(collection(db, 'categories'), {
-      uid: currentUser.uid,
-      name: name.trim(),
-      createdAt: serverTimestamp()
-    });
-    selectCategory(docRef.id);
+    try {
+      const docRef = await addDoc(collection(db, 'categories'), {
+        uid: currentUser.uid,
+        name: name.trim(),
+        createdAt: serverTimestamp()
+      });
+      selectCategory(docRef.id);
+    } catch (e) {
+      console.error(e);
+      alert('Nieuwe lijst aanmaken is mislukt: ' + (e.code || e.message || e) + '\n\nControleer of de Firestore-beveiligingsregels schrijven naar de collectie "categories" toestaan.');
+    }
+  }
+
+  async function renameCategory(catId, newName) {
+    try {
+      await setDoc(doc(db, 'categories', catId), {
+        uid: currentUser.uid,
+        name: newName
+      }, { merge: true });
+    } catch (e) {
+      console.error(e);
+      alert('Naam wijzigen is mislukt: ' + (e.code || e.message || e) + '\n\nControleer of de Firestore-beveiligingsregels schrijven naar de collectie "categories" toestaan.');
+    }
   }
 
   function selectCategory(catId) {
@@ -791,6 +827,43 @@
     document.querySelector('.layout').dataset.cat = currentCat;
     renderTabs();
     renderPanel();
+  }
+
+  function refreshPanelTitle() {
+    const titleEl = document.getElementById('panel-h2');
+    const cat = getCategoryDef(currentCat);
+    if (titleEl && cat && document.activeElement?.id !== 'rename-cat-input') titleEl.textContent = cat.name;
+  }
+
+  function startRenameCategory(cat) {
+    const row = document.getElementById('panel-title-row');
+    if (!row) return;
+    row.innerHTML = `
+      <input type="text" id="rename-cat-input" class="edit-note-input" value="${escapeHtml(cat.name)}" />
+      <button class="del-btn" id="rename-cat-save">opslaan</button>
+    `;
+    const input = document.getElementById('rename-cat-input');
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveRenameCategory(cat.id); });
+    document.getElementById('rename-cat-save').addEventListener('click', () => saveRenameCategory(cat.id));
+  }
+
+  function saveRenameCategory(catId) {
+    const input = document.getElementById('rename-cat-input');
+    const newName = input.value.trim();
+    if (!newName) return;
+    const isDefault = DEFAULT_CATEGORIES.some(c => c.id === catId);
+    if (isDefault) {
+      categoryOverrides[catId] = newName;
+    } else {
+      const cc = customCategories.find(c => c.id === catId);
+      if (cc) cc.name = newName;
+    }
+    renderTabs();
+    renderPanel();
+    renderStatRow();
+    renameCategory(catId, newName);
   }
 
   function refreshCurrentPanelList() {
@@ -836,9 +909,15 @@
     const cat = getCategoryDef(currentCat);
     if (!cat) return;
 
+    const titleRow = `
+      <div class="panel-title-row" id="panel-title-row">
+        <h2 id="panel-h2">${escapeHtml(cat.name)}</h2>
+        <button class="edit-icon" id="rename-cat-btn" title="Naam bewerken">✎</button>
+      </div>`;
+
     if (cat.type === 'finance') {
       panel.innerHTML = `
-        <h2>${escapeHtml(cat.name)}</h2>
+        ${titleRow}
         <div class="sub">Houd hier de kosten bij — het totaal wordt automatisch opgeteld.</div>
         <div class="finance-total">Totaal: <strong>${formatEuro(sumFinance(cat.id))}</strong></div>
         <div class="add-row">
@@ -854,7 +933,7 @@
       renderFinanceList();
     } else {
       panel.innerHTML = `
-        <h2>${escapeHtml(cat.name)}</h2>
+        ${titleRow}
         <div class="sub">Voeg iets toe en werk het rustig af.</div>
         <div class="add-row">
           <input type="text" id="new-todo-input" placeholder="Nieuw taakje..." />
@@ -866,6 +945,7 @@
       document.getElementById('new-todo-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') addTodo(); });
       renderTodoList();
     }
+    document.getElementById('rename-cat-btn').addEventListener('click', () => startRenameCategory(cat));
   }
 
   function subscribeTodos() {
