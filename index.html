@@ -209,6 +209,7 @@
   .stat-chip[data-cat="werk"] .stat-num { color: var(--werk); }
   .stat-chip[data-cat="groei"] .stat-num { color: var(--groei); }
   .stat-chip[data-cat="oldtimer"] .stat-num { color: var(--oldtimer); }
+  .stat-chip[data-cat="oldtimer_financieel"] .stat-num { color: var(--oldtimer); font-size: 20px; }
 
   /* ---- To-do sub-layout ---- */
   .layout {
@@ -252,7 +253,10 @@
   .tab[data-cat="werk"].active { border-left-color: var(--werk); }
   .tab[data-cat="groei"].active { border-left-color: var(--groei); }
   .tab[data-cat="oldtimer"].active { border-left-color: var(--oldtimer); }
+  .tab[data-cat="oldtimer_financieel"].active { border-left-color: var(--oldtimer); }
   .tab:hover:not(.active) { background: rgba(241,237,227,0.04); }
+  .tab.tab-add { color: var(--ink-soft); opacity: 0.85; }
+  .tab.tab-add:hover { color: var(--ink); opacity: 1; background: rgba(241,237,227,0.04); }
 
   .panel { padding: 28px 32px; }
   .panel h2 {
@@ -261,6 +265,15 @@
     margin: 0 0 4px 0;
   }
   .panel .sub { color: var(--ink-soft); font-size: 13px; margin-bottom: 22px; }
+
+  .finance-total {
+    font-family: 'Fraunces', serif; font-size: 20px; margin-bottom: 18px;
+  }
+  .finance-total strong { color: var(--oldtimer); }
+  .finance-amount {
+    font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--oldtimer);
+    white-space: nowrap; font-weight: 500;
+  }
 
   .add-row {
     display: flex;
@@ -277,6 +290,7 @@
     background: var(--paper);
     color: var(--ink);
   }
+  .add-row input[type="number"] { flex: 0 0 130px; }
   .add-row input::placeholder { color: var(--ink-soft); }
   .add-row input:focus { outline: 2px solid var(--ink); outline-offset: 1px; }
   .add-row button {
@@ -284,6 +298,7 @@
     font-size: 14px;
     border: none;
     color: var(--ink-contrast);
+    background: var(--ink);
     padding: 0 18px;
     border-radius: 3px;
     cursor: pointer;
@@ -322,12 +337,28 @@
     cursor: pointer; font-size: 13px; opacity: 0.5;
   }
   .del-btn:hover { opacity: 1; }
+  .edit-note-btn {
+    background: none; border: none; color: var(--ink-soft);
+    cursor: pointer; font-size: 13px; opacity: 0.5; flex-shrink: 0;
+  }
+  .edit-note-btn:hover { opacity: 1; color: var(--ink); }
+  .edit-note-input {
+    flex: 1;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background: var(--paper);
+    color: var(--ink);
+  }
   .empty-state { color: var(--ink-soft); font-style: italic; font-size: 14px; padding: 20px 4px; }
 
   [data-cat="sport"] .add-row button { background: var(--sport); }
   [data-cat="werk"] .add-row button { background: var(--werk); }
   [data-cat="groei"] .add-row button { background: var(--groei); }
   [data-cat="oldtimer"] .add-row button { background: var(--oldtimer); }
+  [data-cat="oldtimer_financieel"] .add-row button { background: var(--oldtimer); }
   #notes-panel .add-row button { background: var(--notes); }
 
   #notes-panel { background: var(--paper-card); box-shadow: var(--shadow); border-radius: 4px; padding: 28px 32px; }
@@ -394,28 +425,15 @@
 
       <section class="content-section" id="section-todos">
         <div class="layout" data-cat="sport">
-          <div class="tab-rail">
-            <div class="tab active" data-cat="sport">Sport<span class="count" data-count="sport">0 open</span></div>
-            <div class="tab" data-cat="werk">Werk<span class="count" data-count="werk">0 open</span></div>
-            <div class="tab" data-cat="groei">Persoonlijke groei<span class="count" data-count="groei">0 open</span></div>
-            <div class="tab" data-cat="oldtimer">Peugeot 404<span class="count" data-count="oldtimer">0 open</span></div>
-          </div>
-          <div class="panel">
-            <h2 id="panel-title">Sport</h2>
-            <div class="sub">Voeg iets toe en werk het rustig af.</div>
-            <div class="add-row">
-              <input type="text" id="new-todo-input" placeholder="Nieuw taakje..." />
-              <button id="add-todo-btn">Toevoegen</button>
-            </div>
-            <ul class="todos" id="todo-list"></ul>
-          </div>
+          <div class="tab-rail" id="tab-rail"></div>
+          <div class="panel" id="todo-panel"></div>
         </div>
       </section>
 
       <section class="content-section" id="section-notes">
         <div id="notes-panel">
           <h2 style="font-family:'Fraunces',serif; font-size:24px; margin:0 0 4px 0;">Snelle notities</h2>
-          <div class="sub" style="color:var(--ink-soft); font-size:13px; margin-bottom:22px;">Voor losse ideeën die nergens anders bij passen.</div>
+          <div class="sub" style="color:var(--ink-soft); font-size:13px; margin-bottom:22px;">Voor losse ideeën die nergens anders bij passen. Klik op het potlood om een notitie te bewerken.</div>
           <div class="add-row">
             <input type="text" id="new-note-input" placeholder="Snelle notitie..." />
             <button id="add-note-btn">Toevoegen</button>
@@ -454,21 +472,25 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  const CATEGORIES = {
-    sport: "Sport",
-    werk: "Werk",
-    groei: "Persoonlijke groei",
-    oldtimer: "Peugeot 404"
-  };
+  const DEFAULT_CATEGORIES = [
+    { id: 'sport', name: 'Sport', type: 'checklist' },
+    { id: 'werk', name: 'Werk', type: 'checklist' },
+    { id: 'groei', name: 'Persoonlijke groei', type: 'checklist' },
+    { id: 'oldtimer', name: 'Peugeot 404', type: 'checklist' },
+    { id: 'oldtimer_financieel', name: 'Peugeot 404 financieel', type: 'finance' }
+  ];
 
   let currentUser = null;
   let currentCat = "sport";
   let accessToken = null;
   let allTodos = [];
   let allNotes = [];
+  let customCategories = [];
   let unsubscribeTodos = null;
   let unsubscribeNotes = null;
+  let unsubscribeCategories = null;
   let todosLayoutInitialized = false;
+  let editingNoteId = null;
 
   const todayDateEl = document.getElementById('today-date');
   todayDateEl.textContent = new Date().toLocaleDateString('nl-NL', {
@@ -500,6 +522,7 @@
       const firstName = (user.displayName || '').split(' ')[0];
       document.getElementById('welcome-greeting').textContent = firstName ? `Welkom terug, ${firstName}` : 'Welkom terug';
       initTodosLayout();
+      subscribeCategories();
       subscribeTodos();
       subscribeNotes();
       subscribeHidden();
@@ -511,6 +534,7 @@
       if (unsubscribeTodos) unsubscribeTodos();
       if (unsubscribeNotes) unsubscribeNotes();
       if (unsubscribeHidden) unsubscribeHidden();
+      if (unsubscribeCategories) unsubscribeCategories();
     }
   });
 
@@ -718,26 +742,70 @@
     }
   }
 
+  // ---------- To-do lijsten (categorieën) ----------
+  function getAllCategories() {
+    return [...DEFAULT_CATEGORIES, ...customCategories];
+  }
+
+  function getCategoryDef(catId) {
+    return getAllCategories().find(c => c.id === catId);
+  }
+
+  function countOpen(catId) {
+    return allTodos.filter(t => t.category === catId && !t.done).length;
+  }
+
+  function sumFinance(catId) {
+    return allTodos.filter(t => t.category === catId).reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+  }
+
+  function formatEuro(n) {
+    return '€ ' + n.toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function subscribeCategories() {
+    if (unsubscribeCategories) unsubscribeCategories();
+    const q = query(collection(db, 'categories'), where('uid', '==', currentUser.uid));
+    unsubscribeCategories = onSnapshot(q, (snapshot) => {
+      customCategories = [];
+      snapshot.forEach(docSnap => customCategories.push({ id: docSnap.id, type: 'checklist', ...docSnap.data() }));
+      customCategories.sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
+      renderTabs();
+      renderStatRow();
+    });
+  }
+
+  async function createNewList() {
+    const name = prompt('Naam van de nieuwe lijst:');
+    if (!name || !name.trim()) return;
+    const docRef = await addDoc(collection(db, 'categories'), {
+      uid: currentUser.uid,
+      name: name.trim(),
+      createdAt: serverTimestamp()
+    });
+    selectCategory(docRef.id);
+  }
+
+  function selectCategory(catId) {
+    currentCat = catId;
+    document.querySelector('.layout').dataset.cat = currentCat;
+    renderTabs();
+    renderPanel();
+  }
+
+  function refreshCurrentPanelList() {
+    const cat = getCategoryDef(currentCat);
+    if (!cat) return;
+    if (cat.type === 'finance') renderFinanceList(); else renderTodoList();
+  }
+
   // ---------- To-do's ----------
   function initTodosLayout() {
     if (todosLayoutInitialized) return;
     todosLayoutInitialized = true;
 
-    document.querySelectorAll('.tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        currentCat = tab.dataset.cat;
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        document.querySelector('.layout').dataset.cat = currentCat;
-        document.getElementById('panel-title').textContent = CATEGORIES[currentCat];
-        renderTodoList();
-      });
-    });
-
-    document.getElementById('add-todo-btn').addEventListener('click', addTodo);
-    document.getElementById('new-todo-input').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') addTodo();
-    });
+    renderTabs();
+    renderPanel();
 
     document.getElementById('add-note-btn').addEventListener('click', addNote);
     document.getElementById('new-note-input').addEventListener('keydown', (e) => {
@@ -745,6 +813,59 @@
     });
 
     loadCalendar();
+  }
+
+  function renderTabs() {
+    const rail = document.getElementById('tab-rail');
+    if (!rail) return;
+    const cats = getAllCategories();
+    rail.innerHTML = cats.map(cat => {
+      const countText = cat.type === 'finance' ? formatEuro(sumFinance(cat.id)) : `${countOpen(cat.id)} open`;
+      return `<div class="tab ${cat.id === currentCat ? 'active' : ''}" data-cat="${cat.id}">${escapeHtml(cat.name)}<span class="count">${countText}</span></div>`;
+    }).join('') + `<div class="tab tab-add" id="add-list-tab" title="Nieuwe lijst toevoegen">+<span class="count">Nieuwe lijst</span></div>`;
+
+    rail.querySelectorAll('.tab[data-cat]').forEach(tab => {
+      tab.addEventListener('click', () => selectCategory(tab.dataset.cat));
+    });
+    document.getElementById('add-list-tab').addEventListener('click', createNewList);
+  }
+
+  function renderPanel() {
+    const panel = document.getElementById('todo-panel');
+    if (!panel) return;
+    const cat = getCategoryDef(currentCat);
+    if (!cat) return;
+
+    if (cat.type === 'finance') {
+      panel.innerHTML = `
+        <h2>${escapeHtml(cat.name)}</h2>
+        <div class="sub">Houd hier de kosten bij — het totaal wordt automatisch opgeteld.</div>
+        <div class="finance-total">Totaal: <strong>${formatEuro(sumFinance(cat.id))}</strong></div>
+        <div class="add-row">
+          <input type="text" id="new-finance-note" placeholder="Omschrijving..." />
+          <input type="number" id="new-finance-amount" placeholder="Bedrag" step="0.01" />
+          <button id="add-finance-btn">Toevoegen</button>
+        </div>
+        <ul class="todos" id="todo-list"></ul>
+      `;
+      document.getElementById('add-finance-btn').addEventListener('click', addFinanceEntry);
+      document.getElementById('new-finance-note').addEventListener('keydown', (e) => { if (e.key === 'Enter') addFinanceEntry(); });
+      document.getElementById('new-finance-amount').addEventListener('keydown', (e) => { if (e.key === 'Enter') addFinanceEntry(); });
+      renderFinanceList();
+    } else {
+      panel.innerHTML = `
+        <h2>${escapeHtml(cat.name)}</h2>
+        <div class="sub">Voeg iets toe en werk het rustig af.</div>
+        <div class="add-row">
+          <input type="text" id="new-todo-input" placeholder="Nieuw taakje..." />
+          <button id="add-todo-btn">Toevoegen</button>
+        </div>
+        <ul class="todos" id="todo-list"></ul>
+      `;
+      document.getElementById('add-todo-btn').addEventListener('click', addTodo);
+      document.getElementById('new-todo-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') addTodo(); });
+      renderTodoList();
+    }
   }
 
   function subscribeTodos() {
@@ -759,31 +880,24 @@
         if (b.order !== undefined) return 1;
         return (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0);
       });
-      updateCounts();
-      renderTodoList();
+      renderTabs();
+      refreshCurrentPanelList();
       renderStatRow();
-    });
-  }
-
-  function updateCounts() {
-    Object.keys(CATEGORIES).forEach(cat => {
-      const open = allTodos.filter(t => t.category === cat && !t.done).length;
-      const el = document.querySelector(`[data-count="${cat}"]`);
-      if (el) el.textContent = `${open} open`;
     });
   }
 
   function renderStatRow() {
     const row = document.getElementById('stat-row');
-    row.innerHTML = Object.entries(CATEGORIES).map(([cat, label]) => {
-      const open = allTodos.filter(t => t.category === cat && !t.done).length;
-      return `<div class="stat-chip" data-cat="${cat}"><div class="stat-label">${label}</div><div class="stat-num">${open}</div></div>`;
+    if (!row) return;
+    const cats = getAllCategories();
+    row.innerHTML = cats.map(cat => {
+      const value = cat.type === 'finance' ? formatEuro(sumFinance(cat.id)) : String(countOpen(cat.id));
+      return `<div class="stat-chip" data-cat="${cat.id}"><div class="stat-label">${escapeHtml(cat.name)}</div><div class="stat-num">${value}</div></div>`;
     }).join('');
     row.querySelectorAll('.stat-chip').forEach(chip => {
       chip.addEventListener('click', () => {
         showSection('todos');
-        const tab = document.querySelector(`.tab[data-cat="${chip.dataset.cat}"]`);
-        if (tab) tab.click();
+        selectCategory(chip.dataset.cat);
       });
     });
   }
@@ -837,6 +951,28 @@
     });
   }
 
+  function renderFinanceList() {
+    const listEl = document.getElementById('todo-list');
+    if (!listEl) return;
+    const totalEl = document.querySelector('.finance-total strong');
+    if (totalEl) totalEl.textContent = formatEuro(sumFinance(currentCat));
+    const items = allTodos.filter(t => t.category === currentCat);
+    if (!items.length) {
+      listEl.innerHTML = '<div class="empty-state">Nog niets hier. Voeg de eerste kostenpost toe.</div>';
+      return;
+    }
+    listEl.innerHTML = items.map(item => `
+      <li data-id="${item.id}">
+        <div class="todo-text">${escapeHtml(item.text)}</div>
+        <span class="finance-amount">${formatEuro(Number(item.amount) || 0)}</span>
+        <button class="del-btn" data-id="${item.id}">verwijderen</button>
+      </li>
+    `).join('');
+    listEl.querySelectorAll('.del-btn').forEach(btn => {
+      btn.addEventListener('click', () => deleteTodo(btn.dataset.id));
+    });
+  }
+
   async function reorderTodos(draggedId, targetId) {
     const items = allTodos.filter(t => t.category === currentCat);
     const fromIdx = items.findIndex(t => t.id === draggedId);
@@ -858,6 +994,23 @@
       category: currentCat,
       text,
       done: false,
+      createdAt: serverTimestamp()
+    });
+  }
+
+  async function addFinanceEntry() {
+    const noteInput = document.getElementById('new-finance-note');
+    const amountInput = document.getElementById('new-finance-amount');
+    const text = noteInput.value.trim();
+    const amount = parseFloat(amountInput.value);
+    if (!text || isNaN(amount)) return;
+    noteInput.value = '';
+    amountInput.value = '';
+    await addDoc(collection(db, 'todos'), {
+      uid: currentUser.uid,
+      category: currentCat,
+      text,
+      amount,
       createdAt: serverTimestamp()
     });
   }
@@ -891,16 +1044,45 @@
       listEl.innerHTML = '<div class="empty-state">Nog geen notities. Zet hier snel iets neer.</div>';
       return;
     }
-    listEl.innerHTML = allNotes.map(n => `
-      <li>
-        <div class="note-text">${escapeHtml(n.text)}</div>
-        <span class="note-time">${formatNoteTime(n.createdAt)}</span>
-        <button class="del-btn" data-id="${n.id}">verwijderen</button>
-      </li>
-    `).join('');
-    listEl.querySelectorAll('.del-btn').forEach(btn => {
+    listEl.innerHTML = allNotes.map(n => {
+      if (editingNoteId === n.id) {
+        return `
+          <li>
+            <input type="text" class="edit-note-input" data-id="${n.id}" value="${escapeHtml(n.text)}" />
+            <button class="del-btn" data-save="${n.id}">opslaan</button>
+          </li>`;
+      }
+      return `
+        <li>
+          <div class="note-text">${escapeHtml(n.text)}</div>
+          <span class="note-time">${formatNoteTime(n.createdAt)}</span>
+          <button class="edit-note-btn" data-edit="${n.id}" title="Bewerken">✎</button>
+          <button class="del-btn" data-id="${n.id}">verwijderen</button>
+        </li>`;
+    }).join('');
+
+    listEl.querySelectorAll('[data-edit]').forEach(btn => {
+      btn.addEventListener('click', () => { editingNoteId = btn.dataset.edit; renderNotes(); });
+    });
+    listEl.querySelectorAll('[data-save]').forEach(btn => {
+      btn.addEventListener('click', () => saveNoteEdit(btn.dataset.save));
+    });
+    listEl.querySelectorAll('.edit-note-input').forEach(input => {
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveNoteEdit(input.dataset.id); });
+      input.focus();
+      input.setSelectionRange(input.value.length, input.value.length);
+    });
+    listEl.querySelectorAll('.del-btn[data-id]').forEach(btn => {
       btn.addEventListener('click', () => deleteNote(btn.dataset.id));
     });
+  }
+
+  async function saveNoteEdit(id) {
+    const input = document.querySelector(`.edit-note-input[data-id="${id}"]`);
+    const text = input.value.trim();
+    if (!text) return;
+    editingNoteId = null;
+    await updateDoc(doc(db, 'notes', id), { text });
   }
 
   function formatNoteTime(ts) {
