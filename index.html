@@ -360,6 +360,15 @@
   .checkbox.checked::after { content: '✓'; color: var(--ink-contrast); font-size: 12px; }
   .todo-text, .note-text { flex: 1; font-size: 15px; }
   .todo-text.done { text-decoration: line-through; color: var(--ink-soft); }
+  .todo-text-wrap { flex: 1; min-width: 0; }
+  .todo-note {
+    font-size: 12px; color: var(--ink-soft); margin-top: 2px;
+    overflow-wrap: anywhere;
+  }
+  .todo-note a { color: var(--werk); text-decoration: underline; }
+  .edit-todo-fields { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .edit-todo-fields .edit-note-input { font-size: 15px; }
+  .edit-todo-fields .edit-todo-note-input { font-size: 13px; padding: 6px 10px; }
   .del-btn {
     background: none; border: none; color: var(--ink-soft);
     cursor: pointer; font-size: 13px; opacity: 0.5;
@@ -1108,12 +1117,25 @@
     });
   }
 
+  function formatTodoNote(note) {
+    const trimmed = note.trim();
+    const isUrl = /^(https?:\/\/|www\.)/i.test(trimmed);
+    if (isUrl) {
+      const href = trimmed.startsWith('http') ? trimmed : 'https://' + trimmed;
+      return `<a href="${escapeHtml(href)}" target="_blank" rel="noopener">${escapeHtml(trimmed)}</a>`;
+    }
+    return escapeHtml(trimmed);
+  }
+
   function renderTodoItemsHtml(items) {
     return items.map(item => {
       if (editingTodoId === item.id) {
         return `
           <li data-id="${item.id}">
-            <input type="text" class="edit-note-input edit-todo-input" data-id="${item.id}" value="${escapeHtml(item.text)}" />
+            <div class="edit-todo-fields">
+              <input type="text" class="edit-note-input edit-todo-input" data-id="${item.id}" value="${escapeHtml(item.text)}" placeholder="Taak..." />
+              <input type="text" class="edit-note-input edit-todo-note-input" data-id="${item.id}" value="${escapeHtml(item.note || '')}" placeholder="Notitie of link (optioneel)..." />
+            </div>
             <button class="del-btn" data-save-todo="${item.id}">opslaan</button>
           </li>`;
       }
@@ -1121,7 +1143,10 @@
       <li draggable="true" data-id="${item.id}">
         <span class="drag-handle" title="Sleep om te herschikken">⋮⋮</span>
         <div class="checkbox ${item.done ? 'checked' : ''}" data-id="${item.id}"></div>
-        <div class="todo-text ${item.done ? 'done' : ''}">${escapeHtml(item.text)}</div>
+        <div class="todo-text-wrap">
+          <div class="todo-text ${item.done ? 'done' : ''}">${escapeHtml(item.text)}</div>
+          ${item.note ? `<div class="todo-note">${formatTodoNote(item.note)}</div>` : ''}
+        </div>
         <button class="edit-note-btn" data-edit-todo="${item.id}" title="Bewerken">✎</button>
         <button class="del-btn" data-id="${item.id}">verwijderen</button>
       </li>`;
@@ -1171,11 +1196,14 @@
     listEl.querySelectorAll('[data-save-todo]').forEach(btn => {
       btn.addEventListener('click', () => saveTodoEdit(btn.dataset.saveTodo));
     });
-    listEl.querySelectorAll('.edit-todo-input').forEach(input => {
+    listEl.querySelectorAll('.edit-todo-input, .edit-todo-note-input').forEach(input => {
       input.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveTodoEdit(input.dataset.id); });
-      input.focus();
-      input.setSelectionRange(input.value.length, input.value.length);
     });
+    const firstTodoEditInput = listEl.querySelector('.edit-todo-input');
+    if (firstTodoEditInput) {
+      firstTodoEditInput.focus();
+      firstTodoEditInput.setSelectionRange(firstTodoEditInput.value.length, firstTodoEditInput.value.length);
+    }
     listEl.querySelectorAll('[data-delete-subcat]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -1285,13 +1313,15 @@
 
   function saveTodoEdit(id) {
     const input = document.querySelector(`.edit-todo-input[data-id="${id}"]`);
+    const noteInput = document.querySelector(`.edit-todo-note-input[data-id="${id}"]`);
     const text = input.value.trim();
     if (!text) return;
+    const note = noteInput ? noteInput.value.trim() : '';
     editingTodoId = null;
     const item = allTodos.find(t => t.id === id);
-    if (item) item.text = text;
+    if (item) { item.text = text; item.note = note; }
     renderTodoList();
-    updateDoc(doc(db, 'todos', id), { text }).catch(e => {
+    updateDoc(doc(db, 'todos', id), { text, note }).catch(e => {
       console.error(e);
       alert('Opslaan is mislukt: ' + (e.code || e.message || e));
     });
