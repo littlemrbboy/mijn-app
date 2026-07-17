@@ -549,7 +549,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import {
-    getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
+    getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import {
     getFirestore, collection, addDoc, onSnapshot, updateDoc, deleteDoc, setDoc,
@@ -569,6 +569,18 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
+
+  getRedirectResult(auth).then((result) => {
+    if (!result) return;
+    const credential = GoogleAuthProvider.credentialFromResult(result);
+    if (credential) {
+      accessToken = credential.accessToken;
+      loadCalendar();
+    }
+  }).catch((e) => {
+    console.error('Redirect-inloggen mislukt', e);
+    alert('Inloggen mislukt: ' + (e.code || e.message || e));
+  });
 
   const DEFAULT_CATEGORIES = [
     { id: 'sport', name: 'Sport', type: 'checklist' },
@@ -614,6 +626,10 @@
     provider.addScope('https://www.googleapis.com/auth/calendar.events');
     provider.setCustomParameters({ prompt: 'select_account' });
     try {
+      if (isStandalonePwa()) {
+        await signInWithRedirect(auth, provider);
+        return;
+      }
       const result = await signInWithPopup(auth, provider);
       const credential = GoogleAuthProvider.credentialFromResult(result);
       accessToken = credential.accessToken;
