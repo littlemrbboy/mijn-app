@@ -549,7 +549,8 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import {
-    getAuth, GoogleAuthProvider, signInWithPopup, getRedirectResult, signOut, onAuthStateChanged
+    getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult,
+    setPersistence, browserLocalPersistence, signOut, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import {
     getFirestore, collection, addDoc, onSnapshot, updateDoc, deleteDoc, setDoc,
@@ -569,6 +570,8 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
+
+  setPersistence(auth, browserLocalPersistence).catch(e => console.error('Persistence instellen mislukt', e));
 
   getRedirectResult(auth).then((result) => {
     if (!result) return;
@@ -622,14 +625,14 @@
 
   // ---------- Auth ----------
   async function handleSignIn() {
-    if (isStandalonePwa()) {
-      alert('Inloggen werkt niet betrouwbaar vanuit de geïnstalleerde app op iOS.\n\nOpen deze pagina in Safari (dus niet via het icoon op je beginscherm), log daar in, en open de app daarna opnieuw vanaf het beginscherm-icoon — je bent dan al ingelogd, want de app deelt dezelfde inlogsessie als Safari.');
-      return;
-    }
     const provider = new GoogleAuthProvider();
     provider.addScope('https://www.googleapis.com/auth/calendar.events');
     provider.setCustomParameters({ prompt: 'select_account' });
     try {
+      if (isStandalonePwa()) {
+        await signInWithRedirect(auth, provider);
+        return;
+      }
       const result = await signInWithPopup(auth, provider);
       const credential = GoogleAuthProvider.credentialFromResult(result);
       accessToken = credential.accessToken;
