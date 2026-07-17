@@ -4,6 +4,13 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Boaz zijn persoonlijke pagina</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#121110">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mijn app">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -23,6 +30,7 @@
     --oldtimer: #C9A227;
     --oldtimer-soft: #322C16;
     --notes: #B98CC7;
+    --ritme: #6FB6B0;
     --shadow: 0 1px 0 rgba(0,0,0,0.4), 0 8px 24px -12px rgba(0,0,0,0.6);
   }
 
@@ -319,15 +327,15 @@
     cursor: pointer;
   }
 
-  ul.todos, ul.notes-list { list-style: none; margin: 0; padding: 0; }
-  ul.todos li, ul.notes-list li {
+  ul.todos, ul.notes-list, ul.ritme-list { list-style: none; margin: 0; padding: 0; }
+  ul.todos li, ul.notes-list li, ul.ritme-list li {
     display: flex;
     align-items: center;
     gap: 12px;
     padding: 12px 4px;
     border-bottom: 1px solid var(--line);
   }
-  ul.todos li:last-child, ul.notes-list li:last-child { border-bottom: none; }
+  ul.todos li:last-child, ul.notes-list li:last-child, ul.ritme-list li:last-child { border-bottom: none; }
   ul.todos li.subcat-header {
     display: flex; justify-content: space-between; align-items: center;
     padding: 16px 4px 6px; border-bottom: none;
@@ -401,6 +409,31 @@
   #notes-panel { background: var(--paper-card); box-shadow: var(--shadow); border-radius: 4px; padding: 28px 32px; }
   .note-time { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-soft); white-space: nowrap; }
 
+  #ritme-panel { background: var(--paper-card); box-shadow: var(--shadow); border-radius: 4px; padding: 28px 32px; }
+  #ritme-panel .add-row button { background: var(--ritme); }
+  .ritme-days-row { display: flex; gap: 6px; margin: 10px 2px 18px; flex-wrap: wrap; }
+  .day-toggle {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .03em;
+    padding: 7px 0; width: 40px; text-align: center;
+    border: 1px solid var(--line); border-radius: 3px; background: var(--paper);
+    color: var(--ink-soft); cursor: pointer; user-select: none;
+  }
+  .day-toggle.active { background: var(--ritme); border-color: var(--ritme); color: var(--ink-contrast); font-weight: 600; }
+  .ritme-time-badge {
+    font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--ink);
+    white-space: nowrap; flex-shrink: 0; width: 48px;
+  }
+  .ritme-days-label {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .03em;
+    color: var(--ink-soft); margin-top: 2px;
+  }
+  .push-status-card {
+    display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+    background: var(--paper); border: 1px solid var(--line); border-radius: 4px;
+    padding: 14px 18px; margin-bottom: 24px; font-size: 13px; color: var(--ink-soft);
+  }
+  .push-status-card button { flex-shrink: 0; }
+
   footer.note {
     margin-top: 24px;
     font-size: 12px;
@@ -441,6 +474,7 @@
       <div class="nav-item active" data-section="welkom">Welkom<span class="nav-sub">overzicht</span></div>
       <div class="nav-item" data-section="todos">To-do lijsten<span class="nav-sub">sport · werk · groei · 404</span></div>
       <div class="nav-item" data-section="notes">Snelle notities<span class="nav-sub">losse ideeën</span></div>
+      <div class="nav-item" data-section="ritme">Ritme<span class="nav-sub">meldingen & routine</span></div>
       <a class="nav-item" href="vaarbewijs.html" target="_blank" rel="noopener">Vaarbewijs 1<span class="nav-arrow">↗</span><span class="nav-sub">theorie trainer</span></a>
     </nav>
 
@@ -476,6 +510,33 @@
             <button id="add-note-btn">Toevoegen</button>
           </div>
           <ul class="notes-list" id="notes-list"></ul>
+        </div>
+      </section>
+
+      <section class="content-section" id="section-ritme">
+        <div id="ritme-panel">
+          <h2 style="font-family:'Fraunces',serif; font-size:24px; margin:0 0 4px 0;">Ritme</h2>
+          <div class="sub" style="color:var(--ink-soft); font-size:13px; margin-bottom:22px;">Bouw een vast ritme met meldingen op je telefoon — bijvoorbeeld op tijd stoppen met je telefoon, of eten op vaste momenten.</div>
+
+          <div class="push-status-card" id="push-status-card"><span>Log in en laad de pagina om meldingen in te stellen.</span></div>
+
+          <div class="add-row" style="flex-wrap:wrap;">
+            <input type="text" id="new-ritme-title" placeholder="Bijv. Stop met telefoon..." style="flex:1 1 220px;" />
+            <input type="time" id="new-ritme-time" style="flex:0 0 120px;" />
+            <input type="text" id="new-ritme-note" placeholder="Notitie (optioneel)..." style="flex:1 1 180px;" />
+            <button id="add-ritme-btn">Toevoegen</button>
+          </div>
+          <div class="ritme-days-row" id="new-ritme-days">
+            <button type="button" class="day-toggle active" data-day="1">Ma</button>
+            <button type="button" class="day-toggle active" data-day="2">Di</button>
+            <button type="button" class="day-toggle active" data-day="3">Wo</button>
+            <button type="button" class="day-toggle active" data-day="4">Do</button>
+            <button type="button" class="day-toggle active" data-day="5">Vr</button>
+            <button type="button" class="day-toggle active" data-day="6">Za</button>
+            <button type="button" class="day-toggle active" data-day="0">Zo</button>
+          </div>
+
+          <ul class="notes-list ritme-list" id="ritme-list"></ul>
         </div>
       </section>
 
@@ -522,15 +583,25 @@
   let accessToken = null;
   let allTodos = [];
   let allNotes = [];
+  let allRoutines = [];
   let customCategories = [];
   let allSubcategories = [];
   let unsubscribeTodos = null;
   let unsubscribeNotes = null;
+  let unsubscribeRoutines = null;
   let unsubscribeCategories = null;
   let unsubscribeSubcategories = null;
   let todosLayoutInitialized = false;
   let editingNoteId = null;
   let editingTodoId = null;
+  let editingRitmeId = null;
+
+  const VAPID_PUBLIC_KEY = 'BLCujWy71SLuBa3I3ZVMTrWCuJc2nWctP-MMYzyfxGig_yUv1bujiStMcF72zZ3AFj-pJVfpLexIaQBnaYjgh10';
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(e => console.error('SW registratie mislukt', e));
+    });
+  }
 
   const todayDateEl = document.getElementById('today-date');
   todayDateEl.textContent = new Date().toLocaleDateString('nl-NL', {
@@ -567,6 +638,8 @@
       subscribeTodos();
       subscribeNotes();
       subscribeHidden();
+      subscribeRoutines();
+      renderPushStatusCard();
     } else {
       document.getElementById('signed-out-view').style.display = 'block';
       document.getElementById('app-shell').style.display = 'none';
@@ -577,6 +650,7 @@
       if (unsubscribeHidden) unsubscribeHidden();
       if (unsubscribeCategories) unsubscribeCategories();
       if (unsubscribeSubcategories) unsubscribeSubcategories();
+      if (unsubscribeRoutines) unsubscribeRoutines();
     }
   });
 
@@ -1005,6 +1079,10 @@
     renderPanel();
 
     document.getElementById('add-note-btn').addEventListener('click', addNote);
+    document.getElementById('add-ritme-btn').addEventListener('click', addRoutine);
+    document.querySelectorAll('#new-ritme-days .day-toggle').forEach(btn => {
+      btn.addEventListener('click', () => btn.classList.toggle('active'));
+    });
     document.getElementById('new-note-input').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') addNote();
     });
@@ -1515,6 +1593,230 @@
 
   async function deleteNote(id) {
     await deleteDoc(doc(db, 'notes', id));
+  }
+
+  // ---------- Ritme ----------
+  function dayPickerHtml(selectedDays) {
+    const labels = [[1, 'Ma'], [2, 'Di'], [3, 'Wo'], [4, 'Do'], [5, 'Vr'], [6, 'Za'], [0, 'Zo']];
+    return labels.map(([num, label]) =>
+      `<button type="button" class="day-toggle ${selectedDays.includes(num) ? 'active' : ''}" data-day="${num}">${label}</button>`
+    ).join('');
+  }
+
+  function subscribeRoutines() {
+    if (unsubscribeRoutines) unsubscribeRoutines();
+    const q = query(collection(db, 'routines'), where('uid', '==', currentUser.uid));
+    unsubscribeRoutines = onSnapshot(q, (snapshot) => {
+      allRoutines = [];
+      snapshot.forEach(docSnap => allRoutines.push({ id: docSnap.id, ...docSnap.data() }));
+      allRoutines.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+      renderRoutines();
+    });
+  }
+
+  function renderRoutines() {
+    const listEl = document.getElementById('ritme-list');
+    if (!listEl) return;
+    if (!allRoutines.length) {
+      listEl.innerHTML = '<div class="empty-state">Nog geen ritme ingesteld. Voeg hierboven je eerste melding toe.</div>';
+      return;
+    }
+    const dayLabel = { 0: 'Zo', 1: 'Ma', 2: 'Di', 3: 'Wo', 4: 'Do', 5: 'Vr', 6: 'Za' };
+    const dayOrder = [1, 2, 3, 4, 5, 6, 0];
+    listEl.innerHTML = allRoutines.map(r => {
+      if (editingRitmeId === r.id) {
+        return `
+          <li data-id="${r.id}">
+            <div class="edit-todo-fields" style="width:100%;">
+              <input type="text" class="edit-note-input edit-ritme-title" data-id="${r.id}" value="${escapeHtml(r.title)}" placeholder="Titel..." />
+              <div style="display:flex; gap:8px;">
+                <input type="time" class="edit-note-input edit-ritme-time" data-id="${r.id}" value="${escapeHtml(r.time)}" style="flex:0 0 120px;" />
+                <input type="text" class="edit-note-input edit-ritme-note" data-id="${r.id}" value="${escapeHtml(r.note || '')}" placeholder="Notitie (optioneel)..." style="flex:1;" />
+              </div>
+              <div class="ritme-days-row edit-ritme-days" data-id="${r.id}" style="margin-bottom:0;">${dayPickerHtml(r.days || [])}</div>
+            </div>
+            <button class="del-btn" data-save-ritme="${r.id}">opslaan</button>
+          </li>`;
+      }
+      const daysText = (r.days && r.days.length === 7)
+        ? 'elke dag'
+        : (r.days || []).slice().sort((a, b) => dayOrder.indexOf(a) - dayOrder.indexOf(b)).map(d => dayLabel[d]).join(' · ');
+      return `
+        <li data-id="${r.id}">
+          <div class="ritme-time-badge">${escapeHtml(r.time || '')}</div>
+          <div class="todo-text-wrap">
+            <div class="todo-text">${escapeHtml(r.title)}</div>
+            <div class="ritme-days-label">${daysText}</div>
+            ${r.note ? `<div class="todo-note">${formatTodoNote(r.note)}</div>` : ''}
+          </div>
+          <button class="edit-note-btn" data-edit-ritme="${r.id}" title="Bewerken">✎</button>
+          <button class="del-btn" data-id-ritme="${r.id}">verwijderen</button>
+        </li>`;
+    }).join('');
+
+    listEl.querySelectorAll('[data-edit-ritme]').forEach(btn => {
+      btn.addEventListener('click', () => { editingRitmeId = btn.dataset.editRitme; renderRoutines(); });
+    });
+    listEl.querySelectorAll('[data-save-ritme]').forEach(btn => {
+      btn.addEventListener('click', () => saveRoutineEdit(btn.dataset.saveRitme));
+    });
+    listEl.querySelectorAll('[data-id-ritme]').forEach(btn => {
+      btn.addEventListener('click', () => deleteRoutine(btn.dataset.idRitme));
+    });
+    listEl.querySelectorAll('.day-toggle').forEach(btn => {
+      btn.addEventListener('click', () => btn.classList.toggle('active'));
+    });
+    const firstEditInput = listEl.querySelector('.edit-ritme-title');
+    if (firstEditInput) {
+      firstEditInput.focus();
+      firstEditInput.setSelectionRange(firstEditInput.value.length, firstEditInput.value.length);
+    }
+  }
+
+  async function addRoutine() {
+    const titleInput = document.getElementById('new-ritme-title');
+    const timeInput = document.getElementById('new-ritme-time');
+    const noteInput = document.getElementById('new-ritme-note');
+    const title = titleInput.value.trim();
+    const time = timeInput.value;
+    const note = noteInput.value.trim();
+    const days = Array.from(document.querySelectorAll('#new-ritme-days .day-toggle.active')).map(b => parseInt(b.dataset.day, 10));
+    if (!title || !time || !days.length) {
+      alert('Vul een titel, tijdstip en minstens één dag in.');
+      return;
+    }
+    titleInput.value = '';
+    timeInput.value = '';
+    noteInput.value = '';
+    await addDoc(collection(db, 'routines'), {
+      uid: currentUser.uid,
+      title, time, note, days,
+      enabled: true,
+      lastSentDate: '',
+      createdAt: serverTimestamp()
+    }).catch(e => {
+      console.error(e);
+      alert('Toevoegen is mislukt: ' + (e.code || e.message || e));
+    });
+  }
+
+  async function saveRoutineEdit(id) {
+    const titleInput = document.querySelector(`.edit-ritme-title[data-id="${id}"]`);
+    const timeInput = document.querySelector(`.edit-ritme-time[data-id="${id}"]`);
+    const noteInput = document.querySelector(`.edit-ritme-note[data-id="${id}"]`);
+    const daysWrap = document.querySelector(`.edit-ritme-days[data-id="${id}"]`);
+    const title = titleInput.value.trim();
+    const time = timeInput.value;
+    const note = noteInput.value.trim();
+    const days = Array.from(daysWrap.querySelectorAll('.day-toggle.active')).map(b => parseInt(b.dataset.day, 10));
+    if (!title || !time || !days.length) return;
+    editingRitmeId = null;
+    await updateDoc(doc(db, 'routines', id), { title, time, note, days }).catch(e => {
+      console.error(e);
+      alert('Opslaan is mislukt: ' + (e.code || e.message || e));
+    });
+  }
+
+  async function deleteRoutine(id) {
+    await deleteDoc(doc(db, 'routines', id));
+  }
+
+  // ---------- Pushmeldingen ----------
+  function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+    return outputArray;
+  }
+
+  async function subIdFor(endpoint) {
+    const enc = new TextEncoder().encode(endpoint);
+    const hashBuf = await crypto.subtle.digest('SHA-256', enc);
+    const hex = Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    return hex.slice(0, 24);
+  }
+
+  function isStandalonePwa() {
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  }
+
+  async function renderPushStatusCard() {
+    const card = document.getElementById('push-status-card');
+    if (!card || !currentUser) return;
+
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      card.innerHTML = `<span>Meldingen worden niet ondersteund in deze browser.</span>`;
+      return;
+    }
+
+    const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    if (isIos && !isStandalonePwa()) {
+      card.innerHTML = `<span>Zet deze pagina eerst op je beginscherm om meldingen te kunnen ontvangen: tik in Safari op het deel-icoon &rarr; "Zet op beginscherm". Open de app daarna vanaf dat icoon.</span>`;
+      return;
+    }
+
+    if (Notification.permission === 'denied') {
+      card.innerHTML = `<span>Meldingen staan uit voor deze app. Zet ze aan via de instellingen van je toestel.</span>`;
+      return;
+    }
+
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const existingSub = await reg.pushManager.getSubscription();
+      if (existingSub) {
+        card.innerHTML = `<span>Meldingen staan aan op dit toestel ✓</span><button class="signout" id="disable-push-btn">Uitschakelen</button>`;
+        document.getElementById('disable-push-btn').addEventListener('click', disablePush);
+      } else {
+        card.innerHTML = `<span>Schakel meldingen in om je ritme-herinneringen op dit toestel te ontvangen.</span><button class="google-btn" id="enable-push-btn">Meldingen inschakelen</button>`;
+        document.getElementById('enable-push-btn').addEventListener('click', enablePush);
+      }
+    } catch (e) {
+      console.error(e);
+      card.innerHTML = `<span>Kon meldingenstatus niet laden.</span>`;
+    }
+  }
+
+  async function enablePush() {
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        renderPushStatusCard();
+        return;
+      }
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+      const subJson = sub.toJSON();
+      const id = await subIdFor(subJson.endpoint);
+      await setDoc(doc(db, 'pushSubscriptions', id), {
+        uid: currentUser.uid,
+        subscription: subJson,
+        updatedAt: serverTimestamp()
+      });
+      renderPushStatusCard();
+    } catch (e) {
+      console.error(e);
+      alert('Meldingen inschakelen is mislukt: ' + (e.message || e));
+    }
+  }
+
+  async function disablePush() {
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) {
+        const id = await subIdFor(sub.endpoint);
+        await sub.unsubscribe();
+        await deleteDoc(doc(db, 'pushSubscriptions', id));
+      }
+      renderPushStatusCard();
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   function escapeHtml(str) {
