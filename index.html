@@ -1746,7 +1746,7 @@
     const card = document.getElementById('push-status-card');
     if (!card || !currentUser) return;
 
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    if (!('serviceWorker' in navigator)) {
       card.innerHTML = `<span>Meldingen worden niet ondersteund in deze browser.</span>`;
       return;
     }
@@ -1754,6 +1754,11 @@
     const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
     if (isIos && !isStandalonePwa()) {
       card.innerHTML = `<span>Zet deze pagina eerst op je beginscherm om meldingen te kunnen ontvangen: tik in Safari op het deel-icoon &rarr; "Zet op beginscherm". Open de app daarna vanaf dat icoon.</span>`;
+      return;
+    }
+
+    if (!('PushManager' in window)) {
+      card.innerHTML = `<span>Meldingen worden niet ondersteund in deze browser.</span>`;
       return;
     }
 
