@@ -39,8 +39,16 @@ async function main() {
   );
 
   const { minutes: nowMinutes, day, dateStr } = nowInTimeZone('Europe/Amsterdam');
+  console.log(`DEBUG now: minutes=${nowMinutes} (${Math.floor(nowMinutes / 60)}:${String(nowMinutes % 60).padStart(2, '0')}), day=${day}, dateStr=${dateStr}`);
+
+  const allSubsSnap = await db.collection('pushSubscriptions').get();
+  console.log(`DEBUG total pushSubscriptions: ${allSubsSnap.size}, uids=${JSON.stringify(allSubsSnap.docs.map(d => d.data().uid))}`);
 
   const routinesSnap = await db.collection('routines').where('enabled', '==', true).get();
+  routinesSnap.docs.forEach(d => {
+    const r = d.data();
+    console.log(`DEBUG routine "${r.title}": time=${r.time}, days=${JSON.stringify(r.days)}, lastSentDate=${r.lastSentDate}, uid=${r.uid}`);
+  });
 
   const due = routinesSnap.docs.filter(d => {
     const data = d.data();
@@ -55,6 +63,7 @@ async function main() {
   for (const routineDoc of due) {
     const routine = routineDoc.data();
     const subsSnap = await db.collection('pushSubscriptions').where('uid', '==', routine.uid).get();
+    console.log(`DEBUG routine "${routine.title}" is due, found ${subsSnap.size} subscription(s) for uid=${routine.uid}`);
 
     const payload = JSON.stringify({
       title: routine.title,
