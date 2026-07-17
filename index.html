@@ -1771,7 +1771,8 @@
       const reg = await navigator.serviceWorker.ready;
       const existingSub = await reg.pushManager.getSubscription();
       if (existingSub) {
-        card.innerHTML = `<span>Meldingen staan aan op dit toestel ✓</span><button class="signout" id="disable-push-btn">Uitschakelen</button>`;
+        card.innerHTML = `<span>Meldingen staan aan op dit toestel ✓</span><button class="google-btn" id="test-push-btn">Stuur testmelding</button><button class="signout" id="disable-push-btn">Uitschakelen</button>`;
+        document.getElementById('test-push-btn').addEventListener('click', sendTestNotification);
         document.getElementById('disable-push-btn').addEventListener('click', disablePush);
       } else {
         card.innerHTML = `<span>Schakel meldingen in om je ritme-herinneringen op dit toestel te ontvangen.</span><button class="google-btn" id="enable-push-btn">Meldingen inschakelen</button>`;
@@ -1821,6 +1822,22 @@
       renderPushStatusCard();
     } catch (e) {
       console.error(e);
+    }
+  }
+
+  // TIJDELIJK: testknop voor pushmeldingen, mag weer weg zodra alles werkt.
+  async function sendTestNotification() {
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      await reg.showNotification('Testmelding', {
+        body: 'Als je dit ziet werkt de melding zelf goed op dit toestel.',
+        icon: 'icon-192.png',
+        badge: 'icon-192.png',
+        tag: 'ritme-test'
+      });
+    } catch (e) {
+      console.error(e);
+      alert('Testmelding tonen is mislukt: ' + (e.message || e));
     }
   }
 
